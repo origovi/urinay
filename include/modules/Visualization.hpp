@@ -15,19 +15,20 @@
 #include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
-#include <unordered_set>
 
-#include "structures/Triangle.hpp"
-#include "modules/DelaunayTri.hpp"
+#include "utils/Definitions.hpp"
+#include "utils/Params.hpp"
 
 class Visualization {
  private:
-  ros::Publisher trianglesPub;
+  ros::Publisher trianglesPub, midpointsPub;
   ros::NodeHandle *const nh;
+  const Params::Visualization params_;
 
  public:
-  Visualization(ros::NodeHandle *const nh, const std::string &triangulation_topic);
-  void triangulation(const TriangleSet &triSet) const;
+  Visualization(ros::NodeHandle *const nh, const Params::Visualization &params);
+  void visualize(const TriangleSet &triSet) const;
+  void visualize(const EdgeSet &edgeSet) const;
 };
 
 #endif  // VISUALIZATION_HPP

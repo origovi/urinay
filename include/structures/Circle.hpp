@@ -1,5 +1,4 @@
-#ifndef CIRCLE_HPP
-#define CIRCLE_HPP
+#pragma once
 
 #include <cmath>
 #include <iostream>
@@ -8,13 +7,11 @@
 
 class Circle {
  private:
-  double x, y, radSq;
-  double distSq(const Node &n) const;
+  Point point_;
+  double radSq_;
 
  public:
   Circle(const Node &n0, const Node &n1, const Node &n2);
   bool containsNode(const Node &n) const;
-  geometry_msgs::Point center() const;
+  const Point &center() const;
 };
-
-#endif  // CIRCLE_HPP

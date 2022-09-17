@@ -1,0 +1,18 @@
+debug:                          false    # bool, specifies whether or not to show the unvalid TLs
+
+# I/O Topics
+input_topic:                    "/AS/P/ccat/cones"
+output_full_topic:              "/AS/P/tracklimits/full"
+output_partial_topic:           "/AS/P/tracklimits/partial"
+
+# Markers
+publish_markers:                true    # bool, whether or not to publish the markers
+marker_topics:
+  triangulation:                "/AS/P/urinay/markers/triangulation"
+  midpoints:                    "/AS/P/urinay/markers/midpoints"
+  markers_full_topic:           "/AS/P/urinay/markers/full"
+  markers_partial_topic:        "/AS/P/urinay/markers/partial"
+
+# Params
+max_triangle_edge_len:          7.0     # double [m], all triangles will have all edge lenghts below max_triangle_edge_len
+max_dist_circum_midPoint:       1.5     # double [m]

@@ -9,8 +9,7 @@
  * 
  */
 
-#ifndef UTILS_TIME_HPP
-#define UTILS_TIME_HPP
+#pragma once
 
 #include <ros/ros.h>
 
@@ -31,5 +30,3 @@ class Time {
   static void tick(const std::string &clockName);
   static ros::WallDuration tock(const std::string &clockName);
 };
-
-#endif  // UTILS_TIME_HPP

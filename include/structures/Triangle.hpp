@@ -1,10 +1,10 @@
-#ifndef TRIANGLE_HPP
-#define TRIANGLE_HPP
+#pragma once
 
 #include <cmath>
 #include <iostream>
 #include <unordered_set>
 #include <vector>
+#include <array>
 #include <algorithm>
 
 #include "structures/Circle.hpp"
@@ -14,13 +14,13 @@
 class Triangle {
  private:
   friend class std::hash<Triangle>;
-  const Circle circle;
-  size_t hash;
+  const Circle circle_;
+  const size_t hash_;
   static size_t computeHash(const Node &n0, const Node &n1, const Node &n2);
 
  public:
-  const Node n0, n1, n2;
-  const Edge e0, e1, e2;
+  const std::array<Node, 3> nodes;
+  const std::array<Edge, 3> edges;
   Triangle(const Node &n0, const Node &n1, const Node &n2);
   Triangle(const Edge &e, const Node &n);
   bool operator==(const Triangle &t) const;
@@ -28,16 +28,13 @@ class Triangle {
   bool circleContainsNode(const Node &n) const;
   bool anyNodeInSuperTriangle() const;
   bool containsEdge(const Edge &e) const;
-  std::vector<Edge> edges() const;
-  geometry_msgs::Point circumCenter() const;
+  const Point &circumCenter() const;
   friend std::ostream &operator<<(std::ostream &os, const Triangle &t);
 };
 
 template <>
 struct std::hash<Triangle> {
   size_t operator()(const Triangle &t) const {
-    return t.hash;
+    return t.hash_;
   }
 };
-
-#endif  // TRIANGLE_HPP

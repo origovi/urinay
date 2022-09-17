@@ -1,14 +1,11 @@
-#ifndef DELAUNAYTRI_HPP
-#define DELAUNAYTRI_HPP
+#pragma once
 
 #include <cmath>
 #include <iostream>
 #include <vector>
 
+#include "utils/Definitions.hpp"
 #include "structures/Triangle.hpp"
-
-using TriangleSet = std::unordered_set<Triangle>;
-using EdgeSet = std::unordered_set<Edge>;
 
 class DelaunayTri {
  private:
@@ -17,5 +14,3 @@ class DelaunayTri {
  public:
   static TriangleSet compute(const std::vector<Node> &nodes);
 };
-
-#endif  // DELAUNAYTRI_HPP

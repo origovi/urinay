@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(urinay)
 
 add_compile_options(-std=c++14)
+set(CMAKE_BUILD_TYPE "Debug")
 
 find_package(catkin REQUIRED COMPONENTS roscpp std_msgs as_msgs sensor_msgs)
 find_package(Eigen3 REQUIRED)
@@ -20,14 +21,17 @@ include_directories(
 
 add_executable(${PROJECT_NAME}_exec src/main.cpp)
 add_library(${PROJECT_NAME}
+  src/structures/Point.cpp
   src/structures/Node.cpp
   src/structures/Edge.cpp
   src/structures/Circle.cpp
   src/structures/Triangle.cpp
   src/modules/DelaunayTri.cpp
-  src/modules/TLs.cpp
+  src/modules/Way.cpp
   src/modules/Visualization.cpp
   src/utils/Time.cpp
+  src/utils/Params.cpp
+  src/utils/KDTree.cpp
 )
 
 add_dependencies(${PROJECT_NAME}_exec as_msgs_generate_messages_cpp)

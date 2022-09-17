@@ -6,22 +6,21 @@
 #include <iostream>
 
 #include "modules/DelaunayTri.hpp"
-#include "modules/TLs.hpp"
+#include "modules/Way.hpp"
 #include "modules/Visualization.hpp"
 #include "utils/Time.hpp"
 
 // Publishers are initialized here
 ros::Publisher tlPub;
 ros::Publisher lapPub;
-ros::Publisher fullMarkersPub, partialMarkersPub;
-bool publish_markers;
 Visualization *vis;
+
+Way *way;
+Params *params;
 
 // This is the map callback
 void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
   if (not data->cones.empty()) {
-    Time::tick("DelaunayTri");
-
     // Convert to Node vector
     std::vector<Node> nodes;
     nodes.reserve(data->cones.size());
@@ -30,14 +29,21 @@ void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
     }
 
     // Delaunay triangulation
+    Time::tick("Triangulation");
     TriangleSet triangles = DelaunayTri::compute(nodes);
+    Time::tock("Triangulation");
 
-    Time::tock("DelaunayTri");
-    
-    if (publish_markers) {
-      vis->triangulation(triangles);
+
+    // Update the way with the new triangulation
+    Time::tick("Way update");
+    way->update(triangles, *vis);
+    Time::tock("Way update");
+
+    if (params->visualization.publish_markers) {
+      vis->visualize(triangles);
     }
 
+    std::cout << std::endl;
   }
 }
 
@@ -47,31 +53,15 @@ int main(int argc, char **argv) {
 
   ros::NodeHandle *const nh = new ros::NodeHandle;
 
-  // nh.param<bool>("urinay/debug", urinay.debug, false);
-
-  std::string input_topic, output_full_topic, output_partial_topic;
-  nh->param<std::string>("urinay/input_topic", input_topic, "/AS/P/ccat/cones");
-  nh->param<std::string>("urinay/output_full_topic", output_full_topic, "/AS/P/tracklimits/full");
-  nh->param<std::string>("urinay/output_partial_topic", output_partial_topic, "/AS/P/tracklimits/partial");
-
-  nh->param<bool>("urinay/publish_markers", publish_markers, false);
-
-  std::string triangulation_topic, markers_full_topic, markers_partial_topic;
-  nh->param<std::string>("urinay/triangulation_topic", triangulation_topic, "/AS/P/urinay/markers/triangulation");
-  nh->param<std::string>("urinay/markers_full_topic", markers_full_topic, "/AS/P/urinay/markers/full");
-  nh->param<std::string>("urinay/markers_partial_topic", markers_partial_topic, "/AS/P/urinay/markers/partial");
+  params = new Params(nh);
+  way = new Way(params->way);
+  vis = new Visualization(nh, params->visualization);
 
   // Publishers & Subscriber
-  ros::Subscriber subMap = nh->subscribe(input_topic, 1, callback_ccat);
+  ros::Subscriber subMap = nh->subscribe(params->main.input_topic, 1, callback_ccat);
 
-  tlPub = nh->advertise<as_msgs::Tracklimits>(output_partial_topic, 1);
-  lapPub = nh->advertise<as_msgs::Tracklimits>(output_full_topic, 1);
-
-  if (publish_markers) {
-    vis = new Visualization(nh, triangulation_topic);
-    fullMarkersPub = nh->advertise<visualization_msgs::MarkerArray>(markers_full_topic, 1);
-    partialMarkersPub = nh->advertise<visualization_msgs::MarkerArray>(markers_partial_topic, 1);
-  }
+  tlPub = nh->advertise<as_msgs::Tracklimits>(params->main.output_partial_topic, 1);
+  lapPub = nh->advertise<as_msgs::Tracklimits>(params->main.output_full_topic, 1);
 
   ros::spin();
 }

@@ -4,15 +4,15 @@
 
 Triangle DelaunayTri::superTriangle(const std::vector<Node> &nodes) {
   // Find the coords maxs and mins
-  double xmax = nodes.front().x;
-  double xmin = nodes.front().x;
-  double ymax = nodes.front().y;
-  double ymin = nodes.front().y;
+  double xmax = nodes.front().x();
+  double xmin = nodes.front().x();
+  double ymax = nodes.front().y();
+  double ymin = nodes.front().y();
   for (const Node &n : nodes) {
-    xmax = std::max(xmax, n.x);
-    xmin = std::min(xmin, n.x);
-    ymax = std::max(ymax, n.y);
-    ymin = std::min(ymin, n.y);
+    xmax = std::max(xmax, n.x());
+    xmin = std::min(xmin, n.x());
+    ymax = std::max(ymax, n.y());
+    ymin = std::min(ymin, n.y());
   }
 
   const double dx = xmax - xmin;
@@ -60,7 +60,7 @@ TriangleSet DelaunayTri::compute(const std::vector<Node> &nodes) {
 
     // Find the boundary of the polygonal hole
     for (const Triangle &t : badTriangles) {
-      for (const Edge &e : t.edges()) {
+      for (const Edge &e : t.edges) {
         bool shared = false;
         for (const Triangle &t2 : badTriangles) {
           if (&t != &t2 and t2.containsEdge(e)) {
