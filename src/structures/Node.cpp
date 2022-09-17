@@ -5,14 +5,19 @@ uint32_t Node::superTriangleNodeNum = 0;
 
 /* ----------------------------- Private Methods ---------------------------- */
 
-Node::Node(const double &x, const double &y) : point_(x, y), id(SUPERTRIANGLE_BASEID + superTriangleNodeNum), belongsToSuperTriangle_(true) {
+Node::Node(const double &x, const double &y)
+    : point_(x, y), id(SUPERTRIANGLE_BASEID + superTriangleNodeNum), belongsToSuperTriangle_(true) {
   superTriangleNodeNum++;
   superTriangleNodeNum %= 3;
 }
 
 /* ----------------------------- Public Methods ----------------------------- */
 
-Node::Node(const double &x, const double &y, const uint32_t &id) : point_(x, y), id(id), belongsToSuperTriangle_(false) {}
+Node::Node(const double &x, const double &y, const double &xGlobal, const double &yGlobal, const uint32_t &id)
+    : point_(x, y), pointGlobal_(xGlobal, yGlobal), id(id), belongsToSuperTriangle_(false) {}
+
+Node::Node(const as_msgs::Cone &c)
+    : Node(c.position_baseLink.x, c.position_baseLink.y, c.position_global.x, c.position_global.y, c.id) {}
 
 const double &Node::x() const {
   return this->point_.x;
@@ -23,7 +28,7 @@ const double &Node::y() const {
 }
 
 bool Node::operator==(const Node &n) const {
-  return n.id == this->id and n.x() == this->x() and n.y() == this->y();
+  return n.id == this->id;
 }
 
 Node Node::superTriangleNode(const double &x, const double &y) {
@@ -36,6 +41,10 @@ const bool &Node::belongsToSuperTriangle() const {
 
 const Point &Node::point() const {
   return this->point_;
+}
+
+const Point &Node::pointGlobal() const {
+  return this->pointGlobal_;
 }
 
 geometry_msgs::Point Node::gmPoint() const {

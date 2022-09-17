@@ -11,6 +11,8 @@ class Params {
   } main;
   struct Way {
     double max_triangle_edge_len, max_dist_circum_midPoint;
+    int max_search_tree_height;
+    double search_radius;
   } way;
   struct Visualization {
     bool publish_markers;

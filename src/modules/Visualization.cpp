@@ -1,13 +1,13 @@
 #include "modules/Visualization.hpp"
 
-Visualization::Visualization(ros::NodeHandle *const nh,const Params::Visualization &params) : nh(nh), params_(params) {
+Visualization::Visualization(ros::NodeHandle *const nh, const Params::Visualization &params) : nh(nh), params_(params) {
   trianglesPub = nh->advertise<visualization_msgs::MarkerArray>(params_.triangulation_topic, 1);
   midpointsPub = nh->advertise<visualization_msgs::MarkerArray>(params_.midpoints_topic, 1);
 }
 
 void Visualization::visualize(const TriangleSet &triSet) const {
   visualization_msgs::MarkerArray ma;
-  ma.markers.reserve(2*triSet.size()+3*triSet.size()+1);
+  ma.markers.reserve(2 * triSet.size() + 3 * triSet.size() + 1);
   visualization_msgs::Marker mTriangulation, mCircumCenter, mMidpoint;
   size_t id = 0;
   mTriangulation.header.stamp = ros::Time::now();
@@ -69,5 +69,28 @@ void Visualization::visualize(const TriangleSet &triSet) const {
 }
 
 void Visualization::visualize(const EdgeSet &edgeSet) const {
+  visualization_msgs::MarkerArray ma;
+  ma.markers.reserve(edgeSet.size() + 1);
+  visualization_msgs::Marker mMidpoint;
+  size_t id = 0;
+  mMidpoint.header.stamp = ros::Time::now();
+  mMidpoint.header.frame_id = "global";
+  mMidpoint.color.a = 1.0;
+  mMidpoint.color.r = 1.0;
+  mMidpoint.pose.orientation.w = 1.0;
+  mMidpoint.scale.x = 0.08;
+  mMidpoint.scale.y = 0.08;
+  mMidpoint.scale.z = 0.2;
+  mMidpoint.type = visualization_msgs::Marker::CYLINDER;
+  mMidpoint.id = id++;
+  mMidpoint.action = visualization_msgs::Marker::DELETEALL;
+  ma.markers.push_back(mMidpoint);
+  mMidpoint.action = visualization_msgs::Marker::ADD;
 
+  for (const Edge &e : edgeSet) {
+    mMidpoint.pose.position = e.midPoint().gmPoint();
+    mMidpoint.id = id++;
+    ma.markers.push_back(mMidpoint);
+  }
+  midpointsPub.publish(ma);
 }

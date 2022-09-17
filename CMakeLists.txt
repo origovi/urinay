@@ -26,6 +26,7 @@ add_library(${PROJECT_NAME}
   src/structures/Edge.cpp
   src/structures/Circle.cpp
   src/structures/Triangle.cpp
+  src/structures/Trace.cpp
   src/modules/DelaunayTri.cpp
   src/modules/Way.cpp
   src/modules/Visualization.cpp

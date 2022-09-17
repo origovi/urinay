@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 
-#include "utils/Definitions.hpp"
+#include "utils/definitions.hpp"
 #include "structures/Triangle.hpp"
 
 class DelaunayTri {

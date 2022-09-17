@@ -21,4 +21,6 @@ Params::Params(ros::NodeHandle *const nh) {
   // Way
   nh->param<double>(ns + "/max_triangle_edge_len", way.max_triangle_edge_len, 9.0);
   nh->param<double>(ns + "/max_dist_circum_midPoint", way.max_dist_circum_midPoint, 1.0);
+  nh->param<int>(ns + "/max_search_tree_height", way.max_search_tree_height, 5);
+  nh->param<double>(ns + "/search_radius", way.search_radius, 5.0);
 }

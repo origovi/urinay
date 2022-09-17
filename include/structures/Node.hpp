@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <as_msgs/Cone.h>
 
 #include "structures/Point.hpp"
 
@@ -13,17 +14,20 @@ class Node {
   static uint32_t superTriangleNodeNum;
   const bool belongsToSuperTriangle_;
   const Point point_;
+  const Point pointGlobal_;
   Node(const double &x, const double &y);
 
  public:
   const uint32_t id;
-  Node(const double &x, const double &y, const uint32_t &id);
+  Node(const double &x, const double &y, const double &xGlobal, const double &yGlobal, const uint32_t &id);
+  Node(const as_msgs::Cone &c);
   const double &x() const;
   const double &y() const;
   bool operator==(const Node &n) const;
   static Node superTriangleNode(const double &x, const double &y);
   const bool &belongsToSuperTriangle() const;
   const Point &point() const;
+  const Point &pointGlobal() const;
   geometry_msgs::Point gmPoint() const;
   double distSq(const Point &p) const;
   friend std::ostream &operator<<(std::ostream &os, const Node &n);

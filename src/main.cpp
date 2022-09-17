@@ -25,7 +25,7 @@ void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
     std::vector<Node> nodes;
     nodes.reserve(data->cones.size());
     for (const as_msgs::Cone &c : data->cones) {
-      nodes.emplace_back(c.position_global.x, c.position_global.y, c.id);
+      nodes.emplace_back(c);
     }
 
     // Delaunay triangulation

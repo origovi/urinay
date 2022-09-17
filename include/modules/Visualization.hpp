@@ -16,7 +16,7 @@
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 
-#include "utils/Definitions.hpp"
+#include "utils/definitions.hpp"
 #include "utils/Params.hpp"
 
 class Visualization {
