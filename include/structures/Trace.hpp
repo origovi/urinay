@@ -51,6 +51,8 @@ class Trace {
   // CANT RUN IF NOT SURE THE CONE IS IN THIS
   Trace getTraceByEdgeInd(const size_t &edgeInd);
 
+  Trace getTraceBySize(const size_t &size) const;
+
   const size_t &edgeInd() const;
 
   const float &heur() const;

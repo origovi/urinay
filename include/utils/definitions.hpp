@@ -1,11 +1,12 @@
 #pragma once
 
-#include <unordered_set>
 #include <list>
-#include "structures/Triangle.hpp"
+#include <unordered_set>
+
 #include "structures/Edge.hpp"
+#include "structures/Triangle.hpp"
 
 using TriangleSet = std::unordered_set<Triangle>;
 using EdgeSet = std::unordered_set<Edge>;
 
-using Path = std::list<Edge>;
+using Tracklimits = std::pair<std::vector<Node>, std::vector<Node>>;

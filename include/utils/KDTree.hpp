@@ -24,6 +24,7 @@
 #include <list>
 #include <memory>
 #include <set>
+#include <unordered_set>
 #include <vector>
 
 #include "structures/Point.hpp"
@@ -156,6 +157,10 @@ class KDTree {
       const double &rad) const;
 
   indexArr neighborhood_indices(  //
+      const Point &pt,            //
+      const double &rad) const;
+
+  std::unordered_set<size_t> neighborhood_indices_set(  //
       const Point &pt,            //
       const double &rad) const;
 };

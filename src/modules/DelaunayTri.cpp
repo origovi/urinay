@@ -35,11 +35,11 @@ Triangle DelaunayTri::superTriangle(const std::vector<Node> &nodes) {
  * triangulation given a set of points. O(nlogn).
  * 
  * @param nodes 
- * @param vis 
  * @return TriangleSet 
  */
 TriangleSet DelaunayTri::compute(const std::vector<Node> &nodes) {
   if (nodes.size() < 3) return {};
+
   TriangleSet triangulation;
 
   // Add a triangle large enough to contain all the points

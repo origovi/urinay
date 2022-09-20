@@ -1,21 +1,20 @@
 #include <as_msgs/ConeArray.h>
-#include <as_msgs/Tracklimits.h>
+#include <as_msgs/PathLimits.h>
 #include <ros/ros.h>
-#include <visualization_msgs/MarkerArray.h>
 
 #include <iostream>
 
 #include "modules/DelaunayTri.hpp"
-#include "modules/Way.hpp"
 #include "modules/Visualization.hpp"
+#include "modules/WayComputer.hpp"
 #include "utils/Time.hpp"
 
 // Publishers are initialized here
-ros::Publisher tlPub;
-ros::Publisher lapPub;
-Visualization *vis;
+ros::Publisher partialPub;
+ros::Publisher loopPub;
 
-Way *way;
+WayComputer *wayComputer;
+Visualization *vis;
 Params *params;
 
 // This is the map callback
@@ -33,14 +32,22 @@ void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
     TriangleSet triangles = DelaunayTri::compute(nodes);
     Time::tock("Triangulation");
 
-
     // Update the way with the new triangulation
     Time::tick("Way update");
-    way->update(triangles, *vis);
+    wayComputer->update(triangles, *vis);
     Time::tock("Way update");
 
     if (params->visualization.publish_markers) {
       vis->visualize(triangles);
+    }
+
+    // Publish loop
+    if (wayComputer->way().closesLoop()) {
+      loopPub.publish(wayComputer->way().getPathLimits());
+    }
+    // Publish partial
+    else {
+      partialPub.publish(wayComputer->way().getPathLimits());
     }
 
     std::cout << std::endl;
@@ -54,14 +61,14 @@ int main(int argc, char **argv) {
   ros::NodeHandle *const nh = new ros::NodeHandle;
 
   params = new Params(nh);
-  way = new Way(params->way);
+  wayComputer = new WayComputer(params->wayComputer);
   vis = new Visualization(nh, params->visualization);
 
   // Publishers & Subscriber
   ros::Subscriber subMap = nh->subscribe(params->main.input_topic, 1, callback_ccat);
 
-  tlPub = nh->advertise<as_msgs::Tracklimits>(params->main.output_partial_topic, 1);
-  lapPub = nh->advertise<as_msgs::Tracklimits>(params->main.output_full_topic, 1);
+  partialPub = nh->advertise<as_msgs::PathLimits>(params->main.output_partial_topic, 1);
+  loopPub = nh->advertise<as_msgs::PathLimits>(params->main.output_full_topic, 1);
 
   ros::spin();
 }

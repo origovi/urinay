@@ -9,14 +9,16 @@ class Params {
     std::string input_topic, output_full_topic, output_partial_topic;
     std::string markers_full_topic, markers_partial_topic;
   } main;
-  struct Way {
+  struct WayComputer {
     double max_triangle_edge_len, max_dist_circum_midPoint;
-    int max_search_tree_height;
+    int max_search_tree_height, max_search_options;
     double search_radius;
-  } way;
+    float max_next_heuristic, heur_dist_ponderation;
+  } wayComputer;
   struct Visualization {
     bool publish_markers;
     std::string triangulation_topic;
     std::string midpoints_topic;
+    std::string way_topic;
   } visualization;
 };

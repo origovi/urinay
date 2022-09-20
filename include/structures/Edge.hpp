@@ -16,6 +16,7 @@ class Edge {
   bool operator==(const Edge &e) const;
   friend std::ostream &operator<<(std::ostream &os, const Edge &e);
   Point midPoint() const;
+  Point midPointGlobal() const;
 };
 
 template <>

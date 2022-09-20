@@ -58,6 +58,13 @@ Trace Trace::getTraceByEdgeInd(const size_t &index) {
     return Trace(this->p->before).getTraceByEdgeInd(index);
 }
 
+Trace Trace::getTraceBySize(const size_t &size) const {
+  if (this->size() <= size)
+    return *this;
+  else
+    return Trace(this->p->before).getTraceBySize(size);
+}
+
 const size_t &Trace::edgeInd() const {
   ROS_ASSERT(not empty());
   return this->p->edgeInd;
@@ -69,8 +76,10 @@ const float &Trace::heur() const {
 }
 
 float Trace::sumHeur() const {
-  if (empty()) return 0.0;
-  else return heur() + before().sumHeur();
+  if (empty())
+    return 0.0;
+  else
+    return heur() + before().sumHeur();
 }
 
 bool Trace::containsEdge(const size_t &edgeInd) const {

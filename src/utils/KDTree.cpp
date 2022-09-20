@@ -311,7 +311,7 @@ pointVec KDTree::neighborhood_points(  //
   pointVec nbhp;
   nbhp.resize(nbh.size());
   std::transform(nbh.begin(), nbh.end(), nbhp.begin(),
-                 [](pointIndex x) { return x.first; });
+                 [](const pointIndex &x) { return x.first; });
   return nbhp;
 }
 
@@ -323,6 +323,18 @@ indexArr KDTree::neighborhood_indices(  //
   indexArr nbhi;
   nbhi.resize(nbh.size());
   std::transform(nbh.begin(), nbh.end(), nbhi.begin(),
-                 [](pointIndex x) { return x.second; });
+                 [](const pointIndex &x) { return x.second; });
   return nbhi;
+}
+
+std::unordered_set<size_t> KDTree::neighborhood_indices_set(  //
+    const Point &pt,                    //
+    const double &rad) const {
+  size_t level = 0;
+  pointIndexArr nbh = neighborhood_(root, pt, rad, level);
+  std::unordered_set<size_t> nbhs;
+  for (const pointIndex &x : nbh) {
+    nbhs.insert(x.second);
+  }
+  return nbhs;
 }

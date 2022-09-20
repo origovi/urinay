@@ -2,19 +2,23 @@ debug:                          false    # bool, specifies whether or not to sho
 
 # I/O Topics
 input_topic:                    "/AS/P/ccat/cones"
-output_full_topic:              "/AS/P/tracklimits/full"
-output_partial_topic:           "/AS/P/tracklimits/partial"
+output_full_topic:              "/AS/P/pathlimits/full"
+output_partial_topic:           "/AS/P/pathlimits/partial"
 
 # Markers
 publish_markers:                true    # bool, whether or not to publish the markers
 marker_topics:
   triangulation:                "/AS/P/urinay/markers/triangulation"
   midpoints:                    "/AS/P/urinay/markers/midpoints"
+  way:                          "/AS/P/urinay/markers/way"
   markers_full_topic:           "/AS/P/urinay/markers/full"
   markers_partial_topic:        "/AS/P/urinay/markers/partial"
 
 # Params
 max_triangle_edge_len:          7.0     # double [m], all triangles will have all edge lenghts below max_triangle_edge_len
 max_dist_circum_midPoint:       1.0     # double [m]
-max_search_tree_height:          6       # int    [num]
+max_search_tree_height:         6       # int    [num]
 search_radius:                  5.0     # double [m]
+max_search_options:             2       # int    [num]
+max_next_heuristic:             2.8     # float  [-]
+heur_dist_ponderation:          0.4     # float  [-], assume angle_ponderation = 1.0-this

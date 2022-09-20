@@ -24,11 +24,12 @@ class Node {
   const double &x() const;
   const double &y() const;
   bool operator==(const Node &n) const;
+  bool operator!=(const Node &n) const;
   static Node superTriangleNode(const double &x, const double &y);
   const bool &belongsToSuperTriangle() const;
   const Point &point() const;
   const Point &pointGlobal() const;
-  geometry_msgs::Point gmPoint() const;
   double distSq(const Point &p) const;
+  as_msgs::Cone cone() const;
   friend std::ostream &operator<<(std::ostream &os, const Node &n);
 };

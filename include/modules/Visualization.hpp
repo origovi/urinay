@@ -16,12 +16,13 @@
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 
-#include "utils/definitions.hpp"
+#include "structures/Way.hpp"
 #include "utils/Params.hpp"
+#include "utils/definitions.hpp"
 
 class Visualization {
  private:
-  ros::Publisher trianglesPub, midpointsPub;
+  ros::Publisher trianglesPub, midpointsPub, wayPub;
   ros::NodeHandle *const nh;
   const Params::Visualization params_;
 
@@ -29,6 +30,7 @@ class Visualization {
   Visualization(ros::NodeHandle *const nh, const Params::Visualization &params);
   void visualize(const TriangleSet &triSet) const;
   void visualize(const EdgeSet &edgeSet) const;
+  void visualize(const Way &way) const;
 };
 
 #endif  // VISUALIZATION_HPP

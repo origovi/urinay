@@ -16,20 +16,16 @@ Triangle::Triangle(const Node &n0, const Node &n1, const Node &n2)
 Triangle::Triangle(const Edge &e, const Node &n)
     : nodes{e.n0, e.n1, n}, circle_(e.n0, e.n1, n), edges{Edge(e.n0, e.n1), Edge(e.n1, n), Edge(e.n0, n)}, hash_(computeHash(e.n0, e.n1, n)) {}
 
-/**
- * @brief Compares two triangles, two triangles will be equal when the vertices
- * are the same (the id and point are checked).
- * 
- * @param t 
- * @return true 
- * @return false 
- */
 bool Triangle::operator==(const Triangle &t) const {
   std::vector<uint32_t> thisIds = {this->nodes[0].id, this->nodes[1].id, this->nodes[2].id};
   std::vector<uint32_t> tIds = {t.nodes[0].id, t.nodes[1].id, t.nodes[2].id};
   std::sort(thisIds.begin(), thisIds.end());
   std::sort(tIds.begin(), tIds.end());
   return thisIds[0] == tIds[0] and thisIds[1] == tIds[1] and thisIds[2] == tIds[2];
+}
+
+bool Triangle::operator!=(const Triangle &t) const {
+  return not (*this == t);
 }
 
 bool Triangle::containsNode(const Node &n) const {
@@ -50,6 +46,10 @@ bool Triangle::containsEdge(const Edge &e) const {
 
 const Point &Triangle::circumCenter() const {
   return circle_.center();
+}
+
+const Point &Triangle::circumCenterGlobal() const {
+  return circle_.centerGlobal();
 }
 
 std::ostream &operator<<(std::ostream &os, const Triangle &t) {

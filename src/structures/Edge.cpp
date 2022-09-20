@@ -27,3 +27,7 @@ std::ostream &operator<<(std::ostream &os, const Edge &e) {
 Point Edge::midPoint() const {
   return (n0.point() + n1.point()) / 2.0;
 }
+
+Point Edge::midPointGlobal() const {
+  return (n0.pointGlobal() + n1.pointGlobal()) / 2.0;
+}

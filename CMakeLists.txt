@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(urinay)
 
 add_compile_options(-std=c++14)
-set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_BUILD_TYPE "Release")
 
 find_package(catkin REQUIRED COMPONENTS roscpp std_msgs as_msgs sensor_msgs)
 find_package(Eigen3 REQUIRED)
@@ -27,8 +27,10 @@ add_library(${PROJECT_NAME}
   src/structures/Circle.cpp
   src/structures/Triangle.cpp
   src/structures/Trace.cpp
+  src/structures/Vector.cpp
+  src/structures/Way.cpp
   src/modules/DelaunayTri.cpp
-  src/modules/Way.cpp
+  src/modules/WayComputer.cpp
   src/modules/Visualization.cpp
   src/utils/Time.cpp
   src/utils/Params.cpp

@@ -31,6 +31,10 @@ bool Node::operator==(const Node &n) const {
   return n.id == this->id;
 }
 
+bool Node::operator!=(const Node &n) const {
+  return not(*this == n);
+}
+
 Node Node::superTriangleNode(const double &x, const double &y) {
   return Node(x, y);
 }
@@ -47,16 +51,16 @@ const Point &Node::pointGlobal() const {
   return this->pointGlobal_;
 }
 
-geometry_msgs::Point Node::gmPoint() const {
-  geometry_msgs::Point res;
-  res.x = this->x();
-  res.y = this->y();
-  res.z = 0.0;
-  return res;
-}
-
 double Node::distSq(const Point &p) const {
   return (this->x() - p.x) * (this->x() - p.x) + (this->y() - p.y) * (this->y() - p.y);
+}
+
+as_msgs::Cone Node::cone() const {
+  as_msgs::Cone res;
+  res.id = this->id;
+  res.position_global = this->pointGlobal().gmPoint();
+  res.type = 4;  // None
+  return res;
 }
 
 std::ostream &operator<<(std::ostream &os, const Node &n) {

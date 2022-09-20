@@ -3,6 +3,7 @@
 Visualization::Visualization(ros::NodeHandle *const nh, const Params::Visualization &params) : nh(nh), params_(params) {
   trianglesPub = nh->advertise<visualization_msgs::MarkerArray>(params_.triangulation_topic, 1);
   midpointsPub = nh->advertise<visualization_msgs::MarkerArray>(params_.midpoints_topic, 1);
+  wayPub = nh->advertise<visualization_msgs::MarkerArray>(params_.way_topic, 1);
 }
 
 void Visualization::visualize(const TriangleSet &triSet) const {
@@ -47,20 +48,20 @@ void Visualization::visualize(const TriangleSet &triSet) const {
     mTriangulation.points.clear();
     mTriangulation.points.reserve(triSet.size());
     mTriangulation.id = id++;
-    mTriangulation.points.push_back(t.nodes[0].gmPoint());
-    mTriangulation.points.push_back(t.nodes[1].gmPoint());
-    mTriangulation.points.push_back(t.nodes[2].gmPoint());
-    mTriangulation.points.push_back(t.nodes[0].gmPoint());
+    mTriangulation.points.push_back(t.nodes[0].pointGlobal().gmPoint());
+    mTriangulation.points.push_back(t.nodes[1].pointGlobal().gmPoint());
+    mTriangulation.points.push_back(t.nodes[2].pointGlobal().gmPoint());
+    mTriangulation.points.push_back(t.nodes[0].pointGlobal().gmPoint());
     ma.markers.push_back(mTriangulation);
 
     // Circumcenter
-    mCircumCenter.pose.position = t.circumCenter().gmPoint();
+    mCircumCenter.pose.position = t.circumCenterGlobal().gmPoint();
     mCircumCenter.id = id++;
     ma.markers.push_back(mCircumCenter);
 
     // Edges midpoints
     for (const Edge &e : t.edges) {
-      mMidpoint.pose.position = e.midPoint().gmPoint();
+      mMidpoint.pose.position = e.midPointGlobal().gmPoint();
       mMidpoint.id = id++;
       ma.markers.push_back(mMidpoint);
     }
@@ -88,9 +89,61 @@ void Visualization::visualize(const EdgeSet &edgeSet) const {
   mMidpoint.action = visualization_msgs::Marker::ADD;
 
   for (const Edge &e : edgeSet) {
-    mMidpoint.pose.position = e.midPoint().gmPoint();
+    mMidpoint.pose.position = e.midPointGlobal().gmPoint();
     mMidpoint.id = id++;
     ma.markers.push_back(mMidpoint);
   }
   midpointsPub.publish(ma);
 }
+
+void Visualization::visualize(const Way &way) const {
+  visualization_msgs::MarkerArray ma;
+  ma.markers.reserve(3*way.size() + 1);
+  visualization_msgs::Marker mMidpoints, mLeft, mRight;
+  size_t id = 0;
+  mMidpoints.header.stamp = ros::Time::now();
+  mMidpoints.header.frame_id = "global";
+  mMidpoints.color.a = 1.0;
+  mMidpoints.color.g = 1.0;
+  mMidpoints.pose.orientation.w = 1.0;
+  mMidpoints.scale.x = 0.2;
+  mMidpoints.scale.y = 0.2;
+  mMidpoints.scale.z = 0.2;
+  mMidpoints.type = visualization_msgs::Marker::LINE_STRIP;
+  mMidpoints.id = id++;
+  mMidpoints.action = visualization_msgs::Marker::DELETEALL;
+  ma.markers.push_back(mMidpoints);
+  mMidpoints.action = visualization_msgs::Marker::ADD;
+  mLeft = mMidpoints;
+  mLeft.color.r = 0.7;
+  mLeft.color.g = 0.7;
+  mLeft.id = id++;
+  mRight = mMidpoints;
+  mRight.color.g = 0.0;
+  mRight.color.b = 0.5;
+
+  mMidpoints.id = id++;
+  for (const Point &p : way.getPath()) {
+    mMidpoints.points.push_back(p.gmPoint());
+  }
+  ma.markers.push_back(mMidpoints);
+
+  mRight.id = id++;
+  Tracklimits tracklimits = way.getTracklimits();
+
+  for (const Node &n : tracklimits.first) {
+    mLeft.points.push_back(n.pointGlobal().gmPoint());
+  }
+  ma.markers.push_back(mLeft);
+
+  for (const Node &n : tracklimits.second) {
+    mRight.points.push_back(n.pointGlobal().gmPoint());
+  }
+  ma.markers.push_back(mRight);
+
+  wayPub.publish(ma);
+}
+
+/* -------------------------------------------------------------------------- */
+/*             un tema amb la distancia maxima, en els dos rosbags            */
+/* -------------------------------------------------------------------------- */
