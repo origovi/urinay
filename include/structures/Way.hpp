@@ -12,7 +12,7 @@
 class Way {
  private:
   // Min loop size in order to make it eligible to be closed.
-  const int MIN_SIZE_FOR_LOOP = 10;
+  const int MIN_SIZE_FOR_LOOP = 25;
   
   // At some point there MUST be a minimum distance of X meters between
   // this->front().midpointGlobal() and way.front().midpointGlobal(), to avoid
@@ -20,10 +20,12 @@ class Way {
   const double MIN_DIST_PATHS_FRONT = 5.0;
 
   // Min distance between path front and back to detect it as a loop.
-  const double MIN_DIST_LOOP_CLOSURE = 1.0;
+  const double MIN_DIST_LOOP_CLOSURE = 2.0;
 
   bool canCloseLoopWith_ = false;
   std::list<Edge> path_;
+
+  void restructureClosure();
 
  public:
   bool empty() const;
@@ -41,6 +43,8 @@ class Way {
   bool closesLoopWith(const Way &way) const;
 
   bool closesLoop() const;
+
+  bool containsEdge(const Edge &e) const;
 
   std::vector<Point> getPath() const;
 

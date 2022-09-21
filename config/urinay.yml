@@ -16,7 +16,7 @@ marker_topics:
 
 # Params
 max_triangle_edge_len:          7.0     # double [m], all triangles will have all edge lenghts below max_triangle_edge_len
-max_dist_circum_midPoint:       1.0     # double [m]
+max_dist_circum_midPoint:       1.5     # double [m]
 max_search_tree_height:         6       # int    [num]
 search_radius:                  5.0     # double [m]
 max_search_options:             2       # int    [num]

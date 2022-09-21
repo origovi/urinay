@@ -14,6 +14,7 @@ class Edge {
   const double len;
   Edge(const Node &n0, const Node &n1);
   bool operator==(const Edge &e) const;
+  bool operator!=(const Edge &e) const;
   friend std::ostream &operator<<(std::ostream &os, const Edge &e);
   Point midPoint() const;
   Point midPointGlobal() const;

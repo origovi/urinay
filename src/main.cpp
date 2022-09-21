@@ -44,6 +44,7 @@ void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
     // Publish loop
     if (wayComputer->way().closesLoop()) {
       loopPub.publish(wayComputer->way().getPathLimits());
+      ros::shutdown();
     }
     // Publish partial
     else {

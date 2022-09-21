@@ -55,8 +55,10 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Edge *act
   // Find all possible edges in a specified radius
   std::unordered_set<size_t> nextPossibleEdges = midpointsKDT.neighborhood_indices_set(actPos, params_.search_radius);
 
-  // Discard all Edges whose midpoint is behind actPos and discard the one
-  // that corresponds to actPos
+  // Discard:
+  // - all Edges whose midpoint is behind actPos
+  // - the one that corresponds to actPos
+  // - all Edges already contained in the Way(s)
   auto it = nextPossibleEdges.begin();
   while (it != nextPossibleEdges.end()) {
     if (edges[*it] == actEdge or Vector::pointBehind(edges[*it]->midPoint(), actPos, dir))
@@ -92,7 +94,7 @@ void WayComputer::computeWay(Way &way, const std::vector<const Edge *> &edges) c
   // element of the highest with lower heuristic Trace will be added to the
   // way. The search finishes when no element can be added to the way.
   std::vector<HeurInd> nextEdges;
-  this->findNextEdges(nextEdges, nullptr, Vector(Point(0, 0), Point(1, 0)), midpointsKDT, edges);
+  this->findNextEdges(nextEdges, nullptr, Vector(1, 0), midpointsKDT, edges);
 
   while (not nextEdges.empty() and ros::ok()) {
     Trace best;

@@ -7,6 +7,9 @@
 Vector::Vector(const Point &a, const Point &b)
     : Point(b - a) {}
 
+Vector::Vector(const double &x, const double &y)
+    : Point(x, y) {}
+
 double Vector::dot(const Vector &v) const {
   return this->x * v.x + this->y * v.y;
 }

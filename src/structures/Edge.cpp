@@ -19,6 +19,10 @@ bool Edge::operator==(const Edge &e) const {
   return (e.n0 == this->n0 and e.n1 == this->n1) or (e.n1 == n0 and e.n0 == this->n1);
 }
 
+bool Edge::operator!=(const Edge &e) const {
+  return not (*this == e);
+}
+
 std::ostream &operator<<(std::ostream &os, const Edge &e) {
   os << "E(" << e.n0 << ", " << e.n1 << ")";
   return os;

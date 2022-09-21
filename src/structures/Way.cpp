@@ -52,16 +52,51 @@ void Way::mergeWith(Way &way) {
 
   // Append new path into this
   this->path_.splice(this->path_.end(), way.path_);
+
+  // Restructure closure
+  if (this->closesLoop()) {
+    // this->restructureClosure();
+  }
 }
 
 bool Way::closesLoop() const {
-  return this->size() >= this->MIN_SIZE_FOR_LOOP and Point::distSq(this->front().midPointGlobal(), this->back().midPointGlobal()) < 0.5 * 0.5;
+  return this->size() >= this->MIN_SIZE_FOR_LOOP and Point::distSq(this->front().midPointGlobal(), this->back().midPointGlobal()) < this->MIN_DIST_LOOP_CLOSURE * this->MIN_DIST_LOOP_CLOSURE;
 }
 
 bool Way::closesLoopWith(const Way &way) const {
-  std::cout << this->size() << ' ' << way.size() << std::endl;
   if (this->empty() or way.empty() or (this->size() < this->MIN_SIZE_FOR_LOOP and way.size() < this->MIN_SIZE_FOR_LOOP)) return false;
   return canCloseLoopWith_ and Point::distSq(this->front().midPointGlobal(), way.back().midPointGlobal()) < this->MIN_DIST_LOOP_CLOSURE * this->MIN_DIST_LOOP_CLOSURE;
+}
+
+void Way::restructureClosure() {
+  if (this->front() == this->back()) return;
+
+  // Assume last Edge is the one that closes the loop
+  double distClosestWithLast = Point::distSq(this->front().midPointGlobal(), this->back().midPointGlobal());
+  auto closestWithLastIt = this->path_.begin();
+
+  for (auto it = this->path_.begin(); it != std::prev(this->path_.end(), 5); it++) {  // The 5 is for safety
+    double distWithLast = Point::distSq(this->back().midPointGlobal(), it->midPointGlobal());
+    if (distWithLast <= distClosestWithLast) {
+      distClosestWithLast = distWithLast;
+      closestWithLastIt = it;
+    }
+  }
+
+  // We remove all edges that would cause our "loop" not to be a loop
+  // (all that are before the edge that closes the loop)
+  this->path_.erase(this->path_.begin(), closestWithLastIt);
+
+  // Finally, we make sure that the first edge is the same as the last
+  // (to surely create a loop)
+  if (this->front() != this->back()) this->path_.push_front(this->back());
+}
+
+bool Way::containsEdge(const Edge &e) const {
+  for (const Edge &edge : this->path_) {
+    if (e == edge) return true;
+  }
+  return false;
 }
 
 std::vector<Point> Way::getPath() const {
