@@ -43,6 +43,10 @@ const bool &Node::belongsToSuperTriangle() const {
   return belongsToSuperTriangle_;
 }
 
+void Node::updateLocal(const Eigen::Affine3d &tf) {
+  this->point_ = this->pointGlobal().transformed(tf);
+}
+
 const Point &Node::point() const {
   return this->point_;
 }

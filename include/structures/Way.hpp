@@ -1,5 +1,9 @@
 #pragma once
 
+#include <as_msgs/PathLimits.h>
+#include <ros/ros.h>
+
+#include <Eigen/Geometry>
 #include <list>
 
 #include "structures/Edge.hpp"
@@ -7,13 +11,11 @@
 #include "structures/Vector.hpp"
 #include "utils/definitions.hpp"
 
-#include <as_msgs/PathLimits.h>
-
 class Way {
  private:
   // Min loop size in order to make it eligible to be closed.
   const int MIN_SIZE_FOR_LOOP = 25;
-  
+
   // At some point there MUST be a minimum distance of X meters between
   // this->front().midpointGlobal() and way.front().midpointGlobal(), to avoid
   // false detections of loop closure at the beginning.
@@ -22,10 +24,7 @@ class Way {
   // Min distance between path front and back to detect it as a loop.
   const double MIN_DIST_LOOP_CLOSURE = 2.0;
 
-  bool canCloseLoopWith_ = false;
   std::list<Edge> path_;
-
-  void restructureClosure();
 
  public:
   bool empty() const;
@@ -34,13 +33,19 @@ class Way {
 
   const Edge &back() const;
 
+  const Edge &beforeBack() const;
+
   const Edge &front() const;
+
+  void updateLocal(const Eigen::Affine3d &tf);
 
   void addEdge(const Edge &edge);
 
-  void mergeWith(Way &way);
+  void trimByLocal();
 
-  bool closesLoopWith(const Way &way) const;
+  bool closesLoopWith(const Edge &e) const;
+
+  void restructureClosure();
 
   bool closesLoop() const;
 
@@ -51,4 +56,6 @@ class Way {
   Tracklimits getTracklimits() const;
 
   as_msgs::PathLimits getPathLimits() const;
+
+  friend std::ostream &operator<<(std::ostream &os, const Way &way);
 };

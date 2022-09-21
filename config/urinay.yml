@@ -2,6 +2,7 @@ debug:                          false    # bool, specifies whether or not to sho
 
 # I/O Topics
 input_topic:                    "/AS/P/ccat/cones"
+input_pose_topic:               "/limovelo/state"
 output_full_topic:              "/AS/P/pathlimits/full"
 output_partial_topic:           "/AS/P/pathlimits/partial"
 

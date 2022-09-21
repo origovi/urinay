@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <Eigen/Geometry>
 #include <as_msgs/Cone.h>
 
 #include "structures/Point.hpp"
@@ -13,7 +14,7 @@ class Node {
   static const uint32_t SUPERTRIANGLE_BASEID = 999990;
   static uint32_t superTriangleNodeNum;
   const bool belongsToSuperTriangle_;
-  const Point point_;
+  Point point_;
   const Point pointGlobal_;
   Node(const double &x, const double &y);
 
@@ -27,6 +28,7 @@ class Node {
   bool operator!=(const Node &n) const;
   static Node superTriangleNode(const double &x, const double &y);
   const bool &belongsToSuperTriangle() const;
+  void updateLocal(const Eigen::Affine3d &tf);
   const Point &point() const;
   const Point &pointGlobal() const;
   double distSq(const Point &p) const;

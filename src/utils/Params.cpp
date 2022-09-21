@@ -7,7 +7,9 @@
 Params::Params(ros::NodeHandle *const nh) {
   std::string ns = ros::this_node::getName();
   // Main
+  main.package_path = ros::package::getPath("urinay");
   nh->param<std::string>(ns + "/input_topic", main.input_topic, "/AS/P/ccat/cones");
+  nh->param<std::string>(ns + "/input_pose_topic", main.input_pose_topic, "/limovelo/state");
   nh->param<std::string>(ns + "/output_full_topic", main.output_full_topic, "/AS/P/tracklimits/full");
   nh->param<std::string>(ns + "/output_partial_topic", main.output_partial_topic, "/AS/P/tracklimits/partial");
 

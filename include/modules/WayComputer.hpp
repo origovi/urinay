@@ -1,8 +1,11 @@
 #pragma once
 
 #include <as_msgs/Tracklimits.h>
+#include <eigen_conversions/eigen_msg.h>
+#include <nav_msgs/Odometry.h>
 #include <ros/ros.h>
 
+#include <fstream>
 #include <queue>
 
 #include "modules/Visualization.hpp"
@@ -16,7 +19,11 @@
 class WayComputer {
  private:
   const Params::WayComputer params_;
-  Way historic_;
+  Way way_;
+  bool isLoopClosed_ = false;
+
+  bool localTfValid_ = false;
+  Eigen::Affine3d localTf_;
 
   using HeurInd = std::pair<float, size_t>;
   void filterTriangulation(TriangleSet &triangulation) const;
@@ -29,20 +36,29 @@ class WayComputer {
                      const Edge *actEdge,
                      const Vector &dir,
                      const KDTree &midpointsKDT,
-                     const std::vector<const Edge *> &edges) const;
+                     const std::vector<Edge> &edges) const;
 
   /**
    * @brief Performs the search in order to obtain the most probable way.
    * 
-   * @param way 
    * @param edges 
    */
-  void computeWay(Way &way, const std::vector<const Edge *> &edges) const;
+  void computeWay(const std::vector<Edge> &edges);
 
  public:
   WayComputer(const Params::WayComputer &params);
 
+  void poseCallback(const nav_msgs::Odometry::ConstPtr &data);
+
   void update(TriangleSet &triangulation, const Visualization &vis);
 
-  const Way &way() const;
+  const bool &isLoopClosed() const;
+
+  void writeWayToFile(const std::string &file_path) const;
+
+  std::vector<Point> getPath() const;
+
+  Tracklimits getTracklimits() const;
+
+  as_msgs::PathLimits getPathLimits() const;
 };

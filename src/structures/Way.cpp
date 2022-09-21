@@ -16,46 +16,44 @@ const Edge &Way::back() const {
   return this->path_.back();
 }
 
+const Edge &Way::beforeBack() const {
+  ROS_ASSERT(this->size() >= 2);
+  return *(++this->path_.rbegin());
+}
+
 const Edge &Way::front() const {
   return this->path_.front();
+}
+
+void Way::updateLocal(const Eigen::Affine3d &tf) {
+  for (Edge &e : this->path_) {
+    e.updateLocal(tf);
+  }
 }
 
 void Way::addEdge(const Edge &edge) {
   this->path_.push_back(edge);
 }
 
-void Way::mergeWith(Way &way) {
-  if (way.empty()) return;
-  if (this->empty()) {
-    this->path_.splice(this->path_.end(), way.path_);
-    return;
-  }
+void Way::trimByLocal() {
+  if (this->size() < 2) return;
 
-  // Update loop closing attribute
-  this->canCloseLoopWith_ = this->canCloseLoopWith_ or Point::distSq(this->front().midPointGlobal(), way.front().midPointGlobal()) > this->MIN_DIST_PATHS_FRONT * this->MIN_DIST_PATHS_FRONT;
-
-  double distSqWithFirst = Point::distSq(this->path_.front().midPointGlobal(), way.front().midPointGlobal());
+  double distSqWithFirst = Point::distSq(this->path_.front().midPoint());
   double smallestDWF = distSqWithFirst;
   auto smallestDWFIt = this->path_.begin();
 
   // Find closest element to way's first in this
   for (auto it = this->path_.begin(); it != this->path_.end(); it++) {
-    distSqWithFirst = Point::distSq(it->midPointGlobal(), way.front().midPointGlobal());
+    distSqWithFirst = Point::distSq(it->midPoint());
     if (distSqWithFirst <= smallestDWF) {
       smallestDWF = distSqWithFirst;
       smallestDWFIt = it;
     }
   }
 
-  // Erase all elements after closest element
-  this->path_.erase(smallestDWFIt, this->path_.end());
-
-  // Append new path into this
-  this->path_.splice(this->path_.end(), way.path_);
-
-  // Restructure closure
-  if (this->closesLoop()) {
-    // this->restructureClosure();
+  if (smallestDWFIt != std::prev(this->path_.end())) {
+    // Erase all elements after closest element (included)
+    this->path_.erase(++smallestDWFIt, this->path_.end());
   }
 }
 
@@ -63,9 +61,8 @@ bool Way::closesLoop() const {
   return this->size() >= this->MIN_SIZE_FOR_LOOP and Point::distSq(this->front().midPointGlobal(), this->back().midPointGlobal()) < this->MIN_DIST_LOOP_CLOSURE * this->MIN_DIST_LOOP_CLOSURE;
 }
 
-bool Way::closesLoopWith(const Way &way) const {
-  if (this->empty() or way.empty() or (this->size() < this->MIN_SIZE_FOR_LOOP and way.size() < this->MIN_SIZE_FOR_LOOP)) return false;
-  return canCloseLoopWith_ and Point::distSq(this->front().midPointGlobal(), way.back().midPointGlobal()) < this->MIN_DIST_LOOP_CLOSURE * this->MIN_DIST_LOOP_CLOSURE;
+bool Way::closesLoopWith(const Edge &e) const {
+  return this->size() + 1 >= this->MIN_SIZE_FOR_LOOP and Point::distSq(this->front().midPointGlobal(), e.midPointGlobal()) < this->MIN_DIST_LOOP_CLOSURE * this->MIN_DIST_LOOP_CLOSURE;
 }
 
 void Way::restructureClosure() {
@@ -120,12 +117,12 @@ Tracklimits Way::getTracklimits() const {
   for (const Edge &e : this->path_) {
     Vector pAntPAct(pAnt, e.midPointGlobal());
 
-    if (Vector::pointBehind(e.n0.pointGlobal(), e.midPointGlobal(), pAntPAct.rotClock())) {
-      left = &e.n1;
-      right = &e.n0;
+    if (Vector::pointBehind(e.n0().pointGlobal(), e.midPointGlobal(), pAntPAct.rotClock())) {
+      left = &e.n1();
+      right = &e.n0();
     } else {
-      left = &e.n0;
-      right = &e.n1;
+      left = &e.n0();
+      right = &e.n1();
     }
 
     if (*left != res.first.back())
@@ -162,4 +159,15 @@ as_msgs::PathLimits Way::getPathLimits() const {
   res.tracklimits.stamp = res.stamp;
   res.tracklimits.replan = res.replan;
   return res;
+}
+
+std::ostream &operator<<(std::ostream &os, const Way &way) {
+  Tracklimits tracklimits = way.getTracklimits();
+  for (const Node &n : tracklimits.first) {
+    os << n.pointGlobal().x << ' ' << n.pointGlobal().y << ' ' << 0 << ' ' << n.id << std::endl;
+  }
+  for (const Node &n : tracklimits.second) {
+    os << n.pointGlobal().x << ' ' << n.pointGlobal().y << ' ' << 1 << ' ' << n.id << std::endl;
+  }
+  return os;
 }

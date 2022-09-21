@@ -77,6 +77,11 @@ std::ostream &operator<<(std::ostream &os, const Point &p) {
   return os << "P(" << p.x << ", " << p.y << ")\n";
 }
 
+Point Point::transformed(const Eigen::Affine3d &tf) const {
+  Eigen::Vector3d product = tf * Eigen::Vector3d(this->x, this->y, 0.0);
+  return Point(product.x(), product.y());
+}
+
 geometry_msgs::Point Point::gmPoint() const {
   geometry_msgs::Point res;
   res.x = this->x;

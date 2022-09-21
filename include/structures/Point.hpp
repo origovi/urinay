@@ -11,9 +11,11 @@
 
 #pragma once
 
+#include <geometry_msgs/Point.h>
+
 #include <cmath>
 #include <iostream>
-#include <geometry_msgs/Point.h>
+#include <Eigen/Geometry>
 
 /**
  * @brief Represents a Point in 2D and contains useful tools to perform
@@ -25,7 +27,7 @@ class Point {
 
   Point();
   Point(const double &x, const double &y);
-  template<typename T>
+  template <typename T>
   Point(const T &point);
 
   /* --------------------------- Public Attributes -------------------------- */
@@ -33,23 +35,23 @@ class Point {
   double x, y;
 
   /* ---------------------------- Public Methods ---------------------------- */
-  
+
   Point operator+(const Point &p) const;
   Point operator-(const Point &p) const;
-  
-  template<typename T>
+
+  template <typename T>
   Point operator*(const T &num) const;
-  
-  template<typename T>
+
+  template <typename T>
   Point operator/(const T &num) const;
-  
+
   Point &operator+=(const Point &p);
   Point &operator-=(const Point &p);
-  
-  template<typename T>
+
+  template <typename T>
   Point &operator*=(const T &num);
 
-  template<typename T>
+  template <typename T>
   Point &operator/=(const T &num);
 
   /**
@@ -82,6 +84,14 @@ class Point {
    * @return std::ostream& 
    */
   friend std::ostream &operator<<(std::ostream &os, const Point &p);
+
+  /**
+   * @brief Returns the tranformed Point with an Eigen::Affine3d.
+   * 
+   * @param tf 
+   * @return Point 
+   */
+  Point transformed(const Eigen::Affine3d &tf) const;
 
   /**
    * @brief Converts the point to a geometry_msgs::Point.

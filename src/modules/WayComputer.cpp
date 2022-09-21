@@ -48,7 +48,7 @@ float WayComputer::getHeuristic(const Point &actPos, const Point &nextPos, const
   return params_.heur_dist_ponderation * distHeur + (1 - params_.heur_dist_ponderation) * angleHeur;
 }
 
-void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Edge *actEdge, const Vector &dir, const KDTree &midpointsKDT, const std::vector<const Edge *> &edges) const {
+void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Edge *actEdge, const Vector &dir, const KDTree &midpointsKDT, const std::vector<Edge> &edges) const {
   nextEdges.clear();
   Point actPos = actEdge ? actEdge->midPoint() : Point(0, 0);
 
@@ -58,10 +58,11 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Edge *act
   // Discard:
   // - all Edges whose midpoint is behind actPos
   // - the one that corresponds to actPos
-  // - all Edges already contained in the Way(s)
+  // - (not in first iteration) all Edges already contained in the Way that do not close the loop
   auto it = nextPossibleEdges.begin();
   while (it != nextPossibleEdges.end()) {
-    if (edges[*it] == actEdge or Vector::pointBehind(edges[*it]->midPoint(), actPos, dir))
+    const Edge &nextPossibleEdge = edges[*it];
+    if (&edges[*it] == actEdge or Vector::pointBehind(nextPossibleEdge.midPoint(), actPos, dir) or (actEdge and not this->way_.closesLoopWith(nextPossibleEdge) and this->way_.containsEdge(nextPossibleEdge)))
       it = nextPossibleEdges.erase(it);
     else
       it++;
@@ -72,7 +73,7 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Edge *act
   std::vector<HeurInd> privilege_runner;
   privilege_runner.reserve(nextPossibleEdges.size());
   for (const size_t &nextPossibleEdgeInd : nextPossibleEdges) {
-    double heuristic = this->getHeuristic(actPos, edges[nextPossibleEdgeInd]->midPoint(), dir);
+    double heuristic = this->getHeuristic(actPos, edges[nextPossibleEdgeInd].midPoint(), dir);
     if (heuristic <= params_.max_next_heuristic) privilege_runner.emplace_back(heuristic, nextPossibleEdgeInd);
   }
 
@@ -82,19 +83,32 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Edge *act
   std::partial_sort_copy(privilege_runner.begin(), privilege_runner.end(), nextEdges.begin(), nextEdges.end());
 }
 
-void WayComputer::computeWay(Way &way, const std::vector<const Edge *> &edges) const {
+void WayComputer::computeWay(const std::vector<Edge> &edges) {
+  // Get rid of all edges from closest to car (included) to last
+  this->way_.trimByLocal();
+
   // Build a k-d tree of all midpoints
   std::vector<Point> midpoints(edges.size());
   std::transform(edges.begin(), edges.end(), midpoints.begin(),
-                 [](const Edge *e) -> Point { return e->midPoint(); });
+                 [](const Edge &e) -> Point { return e.midPoint(); });
   KDTree midpointsKDT(midpoints);
 
   // Find the longest and with lower heuristic Trace. Search will be conducted
   // through a tree. The tree height will be limited, at that point the first
-  // element of the highest with lower heuristic Trace will be added to the
+  // element of the longest with lower heuristic Trace will be added to the
   // way. The search finishes when no element can be added to the way.
   std::vector<HeurInd> nextEdges;
-  this->findNextEdges(nextEdges, nullptr, Vector(1, 0), midpointsKDT, edges);
+  const Edge *actEdge = nullptr;
+  Point actPos = Point(1, 0);
+  Point antPos = Point(0, 0);
+  if (not this->way_.empty()) {
+    actEdge = &this->way_.back();
+    if (this->way_.size() >= 2) {
+      actPos = this->way_.back().midPoint();
+      antPos = this->way_.beforeBack().midPoint();
+    }
+  }
+  this->findNextEdges(nextEdges, actEdge, Vector(antPos, actPos), midpointsKDT, edges);
 
   while (not nextEdges.empty() and ros::ok()) {
     Trace best;
@@ -112,13 +126,13 @@ void WayComputer::computeWay(Way &way, const std::vector<const Edge *> &edges) c
       if (t.size() >= params_.max_search_tree_height)
         trace_at_max_height = true;
       else {
-        Point actPos = edges[t.edgeInd()]->midPoint();
+        Point actPos = edges[t.edgeInd()].midPoint();
         Point antPos(0, 0);
         if (t.size() >= 2)
-          antPos = edges[t.before().edgeInd()]->midPoint();
-        else if (not way.empty())
-          antPos = way.back().midPoint();
-        this->findNextEdges(nextEdges, edges[t.edgeInd()], Vector(antPos, actPos), midpointsKDT, edges);
+          antPos = edges[t.before().edgeInd()].midPoint();
+        else if (not this->way_.empty())
+          antPos = this->way_.back().midPoint();
+        this->findNextEdges(nextEdges, &edges[t.edgeInd()], Vector(antPos, actPos), midpointsKDT, edges);
       }
 
       if (trace_at_max_height or nextEdges.empty()) {
@@ -140,37 +154,47 @@ void WayComputer::computeWay(Way &way, const std::vector<const Edge *> &edges) c
       }
     }
 
-    // Find the direction the way is now pointing at. 2 cases:
-    // - If the way is empty, the dir vector actPos->nextPos
-    // - Otherwise, the dir vector will be B-A
-    const Edge *edgeToAppend = edges[best.first().edgeInd()];
-    Point nextPos = edgeToAppend->midPoint();
-    Point actPos(0, 0);
-    if (not way.empty())
-      actPos = way.back().midPoint();
+    const Edge &edgeToAppend = edges[best.first().edgeInd()];
+    Point nextPos = edgeToAppend.midPoint();
+    actPos = this->way_.back().midPoint();
 
-    way.addEdge(*edgeToAppend);
+    this->way_.addEdge(edgeToAppend);
 
     // Check for loop closure
-    if (historic_.closesLoopWith(way) or way.closesLoop()) {
+    if (this->way_.closesLoop()) {
+      this->way_.restructureClosure();
+      this->isLoopClosed_ = true;
       std::cout << "TANQUEM LOOP!" << std::endl;
       return;
     }
 
-    // for (const Edge &e : way) {
-    //   std::cout << e.midPoint() << std::endl;
-    // }
-
-    this->findNextEdges(nextEdges, edgeToAppend, Vector(actPos, nextPos), midpointsKDT, edges);
+    this->findNextEdges(nextEdges, &edgeToAppend, Vector(actPos, nextPos), midpointsKDT, edges);
   }
-  std::cout << "sortim" << std::endl;
+  std::cout << "sortim  " << this->way_.size() << std::endl;
 }
 
 /* ----------------------------- Public Methods ----------------------------- */
 
 WayComputer::WayComputer(const Params::WayComputer &params) : params_(params) {}
 
+void WayComputer::poseCallback(const nav_msgs::Odometry::ConstPtr &data) {
+  tf::poseMsgToEigen(data->pose.pose, this->localTf_);
+
+  // Invert y and z axis
+  static const Eigen::Matrix4d aux = (Eigen::Matrix4d() << 1.0, 0.0, 0.0, 0.0,
+                                      0.0, -1.0, 0.0, 0.0,
+                                      0.0, 0.0, -1.0, 0.0,
+                                      0.0, 0.0, 0.0, 1.0)
+                                         .finished();
+  this->localTf_ = this->localTf_.inverse();
+  this->localTf_.matrix() = this->localTf_.matrix() * aux;
+
+  this->localTfValid_ = true;
+}
+
 void WayComputer::update(TriangleSet &triangulation, const Visualization &vis) {
+  if (not this->localTfValid_) return;
+
   // #1: Remove all triangles which we know will not be part of the track.
   this->filterTriangulation(triangulation);
 
@@ -186,26 +210,48 @@ void WayComputer::update(TriangleSet &triangulation, const Visualization &vis) {
   // #3: Filter the midpoints. Only the ones having a circumcenter near, will be
   // left.
   this->filterMidpoints(edgeSet, triangulation);
+  
+
   vis.visualize(edgeSet);
 
+
   // Convert this set to a vector
-  std::vector<const Edge *> edgeVec;
+  std::vector<Edge> edgeVec;
   edgeVec.reserve(edgeSet.size());
   for (const Edge &e : edgeSet) {
-    edgeVec.push_back(&e);
+    edgeVec.push_back(e);
+  }
+  
+  // #4: Update all local positions (way and edges) with car tf
+  this->way_.updateLocal(this->localTf_);
+  for (Edge &e : edgeVec) {
+    e.updateLocal(this->localTf_);
   }
 
-  // #4: Perform the search through the midpoints in order to obtain a way.
-  Way way;
-  this->computeWay(way, edgeVec);
+  // #5: Perform the search through the midpoints in order to obtain a way.
+  this->computeWay(edgeVec);
 
-  // vis.visualize(way);
-  // #5: Update the historical way
-  historic_.mergeWith(way);  // Destroys way
-
-  vis.visualize(historic_);
+  vis.visualize(this->way_);
 }
 
-const Way &WayComputer::way() const {
-  return this->historic_;
+const bool &WayComputer::isLoopClosed() const {
+  return this->isLoopClosed_;
+}
+
+void WayComputer::writeWayToFile(const std::string &file_path) const {
+  std::ofstream oStreamToWrite(file_path);
+  oStreamToWrite << this->way_;
+  oStreamToWrite.close();
+}
+
+std::vector<Point> WayComputer::getPath() const {
+  return this->way_.getPath();
+}
+
+Tracklimits WayComputer::getTracklimits() const {
+  return this->way_.getTracklimits();
+}
+
+as_msgs::PathLimits WayComputer::getPathLimits() const {
+  return this->way_.getPathLimits();
 }

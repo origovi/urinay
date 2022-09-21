@@ -1,5 +1,6 @@
 #include <as_msgs/ConeArray.h>
 #include <as_msgs/PathLimits.h>
+#include <ros/package.h>
 #include <ros/ros.h>
 
 #include <iostream>
@@ -41,14 +42,15 @@ void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
       vis->visualize(triangles);
     }
 
-    // Publish loop
-    if (wayComputer->way().closesLoop()) {
-      loopPub.publish(wayComputer->way().getPathLimits());
+    // Publish loop and write tracklimits to a file
+    if (wayComputer->isLoopClosed()) {
+      loopPub.publish(wayComputer->getPathLimits());
+      wayComputer->writeWayToFile(params->main.package_path + "/loops/loop.unay");
       ros::shutdown();
     }
     // Publish partial
     else {
-      partialPub.publish(wayComputer->way().getPathLimits());
+      partialPub.publish(wayComputer->getPathLimits());
     }
 
     std::cout << std::endl;
@@ -65,8 +67,9 @@ int main(int argc, char **argv) {
   wayComputer = new WayComputer(params->wayComputer);
   vis = new Visualization(nh, params->visualization);
 
-  // Publishers & Subscriber
+  // Subscribers & Publishers
   ros::Subscriber subMap = nh->subscribe(params->main.input_topic, 1, callback_ccat);
+  ros::Subscriber subPose = nh->subscribe(params->main.input_pose_topic, 1, &WayComputer::poseCallback, wayComputer);
 
   partialPub = nh->advertise<as_msgs::PathLimits>(params->main.output_partial_topic, 1);
   loopPub = nh->advertise<as_msgs::PathLimits>(params->main.output_full_topic, 1);
