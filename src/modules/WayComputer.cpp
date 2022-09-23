@@ -6,12 +6,24 @@ void WayComputer::filterTriangulation(TriangleSet &triangulation) const {
   auto it = triangulation.begin();
   while (it != triangulation.end()) {
     bool removeTriangle = false;
+    // Look for edges longer than accepted
     for (const Edge &e : it->edges) {
       if (e.len > params_.max_triangle_edge_len) {
         removeTriangle = true;
         break;
       }
     }
+
+    // Look for angles smaller than accepted
+    if (!removeTriangle) {
+      for (const double &angle : it->angles()) {
+        if (angle < this->params_.min_triangle_angle) {
+          removeTriangle = true;
+          break;
+        }
+      }
+    }
+
     if (removeTriangle)
       it = triangulation.erase(it);
     else
@@ -110,6 +122,8 @@ void WayComputer::computeWay(const std::vector<Edge> &edges) {
   }
   this->findNextEdges(nextEdges, actEdge, Vector(antPos, actPos), midpointsKDT, edges);
 
+  // Main outer loop, every iteration of this loop will involve adding one
+  // midpoint to the path.
   while (not nextEdges.empty() and ros::ok()) {
     Trace best;
     std::queue<Trace> cua;
@@ -117,7 +131,16 @@ void WayComputer::computeWay(const std::vector<Edge> &edges) {
       cua.emplace(nextEdge.second, nextEdge.first);
     }
 
+    // Inner loop, it will realize the tree search and get the longest (& best)
+    // path.
+    // The loop will stop if the tree search is completed or a time limit has
+    // been exceeded.
+    ros::WallTime searchBeginTime = ros::WallTime::now();
     while (not cua.empty()) {
+      if (ros::WallTime::now() - searchBeginTime > ros::WallDuration(params_.max_treeSearch_time)) {
+        ROS_WARN("[urinay] Time limit exceeded in tree search.");
+        break;
+      }
       Trace t = cua.front();
       cua.pop();
 
@@ -164,13 +187,11 @@ void WayComputer::computeWay(const std::vector<Edge> &edges) {
     if (this->way_.closesLoop()) {
       this->way_.restructureClosure();
       this->isLoopClosed_ = true;
-      std::cout << "TANQUEM LOOP!" << std::endl;
       return;
     }
 
     this->findNextEdges(nextEdges, &edgeToAppend, Vector(actPos, nextPos), midpointsKDT, edges);
   }
-  std::cout << "sortim  " << this->way_.size() << std::endl;
 }
 
 /* ----------------------------- Public Methods ----------------------------- */
@@ -192,8 +213,11 @@ void WayComputer::poseCallback(const nav_msgs::Odometry::ConstPtr &data) {
   this->localTfValid_ = true;
 }
 
-void WayComputer::update(TriangleSet &triangulation, const Visualization &vis) {
+void WayComputer::update(TriangleSet &triangulation) {
   if (not this->localTfValid_) return;
+
+  // #0: Update last way (this will be used to calculate the raplan flag)
+  this->lastWay_ = this->way_;
 
   // #1: Remove all triangles which we know will not be part of the track.
   this->filterTriangulation(triangulation);
@@ -210,10 +234,6 @@ void WayComputer::update(TriangleSet &triangulation, const Visualization &vis) {
   // #3: Filter the midpoints. Only the ones having a circumcenter near, will be
   // left.
   this->filterMidpoints(edgeSet, triangulation);
-  
-
-  vis.visualize(edgeSet);
-
 
   // Convert this set to a vector
   std::vector<Edge> edgeVec;
@@ -221,7 +241,7 @@ void WayComputer::update(TriangleSet &triangulation, const Visualization &vis) {
   for (const Edge &e : edgeSet) {
     edgeVec.push_back(e);
   }
-  
+
   // #4: Update all local positions (way and edges) with car tf
   this->way_.updateLocal(this->localTf_);
   for (Edge &e : edgeVec) {
@@ -230,8 +250,11 @@ void WayComputer::update(TriangleSet &triangulation, const Visualization &vis) {
 
   // #5: Perform the search through the midpoints in order to obtain a way.
   this->computeWay(edgeVec);
-
-  vis.visualize(this->way_);
+  
+  // #6: Visualize
+  Visualization::getInstance().visualize(edgeSet);
+  Visualization::getInstance().visualize(triangulation);
+  Visualization::getInstance().visualize(this->way_);
 }
 
 const bool &WayComputer::isLoopClosed() const {
@@ -253,5 +276,27 @@ Tracklimits WayComputer::getTracklimits() const {
 }
 
 as_msgs::PathLimits WayComputer::getPathLimits() const {
-  return this->way_.getPathLimits();
+  as_msgs::PathLimits res;
+  res.stamp = ros::Time::now();
+  res.replan = this->way_ != this->lastWay_;
+
+  // Fill path
+  std::vector<Point> path = this->way_.getPath();
+  res.path.reserve(path.size());
+  for (const Point &p : path) {
+    res.path.push_back(p.gmPoint());
+  }
+
+  // Fill Tracklimits
+  Tracklimits tracklimits = this->way_.getTracklimits();
+  res.tracklimits.left.reserve(tracklimits.first.size());
+  for (const Node &n : tracklimits.first) {
+    res.tracklimits.left.push_back(n.cone());
+  }
+  for (const Node &n : tracklimits.second) {
+    res.tracklimits.right.push_back(n.cone());
+  }
+  res.tracklimits.stamp = res.stamp;
+  res.tracklimits.replan = res.replan;
+  return res;
 }

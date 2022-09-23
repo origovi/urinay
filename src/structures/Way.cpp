@@ -135,30 +135,27 @@ Tracklimits Way::getTracklimits() const {
   return res;
 }
 
-as_msgs::PathLimits Way::getPathLimits() const {
-  as_msgs::PathLimits res;
-  res.stamp = ros::Time::now();
-  res.replan = true;
+Way &Way::operator=(const Way &way) {
+  this->path_ = std::list<Edge>(way.path_);
+  return *this;
+}
 
-  // Fill path
-  std::vector<Point> path = this->getPath();
-  res.path.reserve(path.size());
-  for (const Point &p : path) {
-    res.path.push_back(p.gmPoint());
+bool Way::operator==(const Way &way) const {
+  if (this->size() != way.size()) return false;
+  auto thisIt = this->path_.cbegin();
+  auto paramIt = way.path_.cbegin();
+
+  while (thisIt != this->path_.cend()) {
+    if (*thisIt != *paramIt) return false;
+    thisIt++;
+    paramIt++;
   }
 
-  // Fill Tracklimits
-  Tracklimits tracklimits = this->getTracklimits();
-  res.tracklimits.left.reserve(tracklimits.first.size());
-  for (const Node &n : tracklimits.first) {
-    res.tracklimits.left.push_back(n.cone());
-  }
-  for (const Node &n : tracklimits.second) {
-    res.tracklimits.right.push_back(n.cone());
-  }
-  res.tracklimits.stamp = res.stamp;
-  res.tracklimits.replan = res.replan;
-  return res;
+  return true;
+}
+
+bool Way::operator!=(const Way &way) const {
+  return not(*this == way);
 }
 
 std::ostream &operator<<(std::ostream &os, const Way &way) {

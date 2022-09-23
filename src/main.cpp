@@ -2,6 +2,7 @@
 #include <as_msgs/PathLimits.h>
 #include <ros/package.h>
 #include <ros/ros.h>
+#include <sys/stat.h>
 
 #include <iostream>
 
@@ -15,46 +16,47 @@ ros::Publisher partialPub;
 ros::Publisher loopPub;
 
 WayComputer *wayComputer;
-Visualization *vis;
 Params *params;
 
 // This is the map callback
 void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
-  if (not data->cones.empty()) {
-    // Convert to Node vector
-    std::vector<Node> nodes;
-    nodes.reserve(data->cones.size());
-    for (const as_msgs::Cone &c : data->cones) {
-      nodes.emplace_back(c);
-    }
-
-    // Delaunay triangulation
-    Time::tick("Triangulation");
-    TriangleSet triangles = DelaunayTri::compute(nodes);
-    Time::tock("Triangulation");
-
-    // Update the way with the new triangulation
-    Time::tick("Way update");
-    wayComputer->update(triangles, *vis);
-    Time::tock("Way update");
-
-    if (params->visualization.publish_markers) {
-      vis->visualize(triangles);
-    }
-
-    // Publish loop and write tracklimits to a file
-    if (wayComputer->isLoopClosed()) {
-      loopPub.publish(wayComputer->getPathLimits());
-      wayComputer->writeWayToFile(params->main.package_path + "/loops/loop.unay");
-      ros::shutdown();
-    }
-    // Publish partial
-    else {
-      partialPub.publish(wayComputer->getPathLimits());
-    }
-
-    std::cout << std::endl;
+  if (data->cones.empty()) {
+    ROS_WARN("[urinay] reading empty set of cones.");
+    return;
   }
+
+  Time::tick("callback");  // Start measuring time
+
+  // Convert to Node vector
+  std::vector<Node> nodes;
+  nodes.reserve(data->cones.size());
+  for (const as_msgs::Cone &c : data->cones) {
+    nodes.emplace_back(c);
+  }
+
+  // Delaunay triangulation
+  TriangleSet triangles = DelaunayTri::compute(nodes);
+
+  // Update the way with the new triangulation
+  wayComputer->update(triangles);
+
+  // Publish loop and write tracklimits to a file
+  if (wayComputer->isLoopClosed()) {
+    ROS_INFO("[urinay] Tanco loop, adeu!");
+    loopPub.publish(wayComputer->getPathLimits());
+    std::string loopDir = params->main.package_path + "/loops";
+    mkdir(loopDir.c_str(), 0777);
+    wayComputer->writeWayToFile(loopDir + "/loop.unay");
+    ros::shutdown();
+  }
+  // Publish partial
+  else {
+    partialPub.publish(wayComputer->getPathLimits());
+  }
+
+  Time::tock("callback");  // End measuring time
+
+  std::cout << std::endl;
 }
 
 // Main
@@ -65,7 +67,7 @@ int main(int argc, char **argv) {
 
   params = new Params(nh);
   wayComputer = new WayComputer(params->wayComputer);
-  vis = new Visualization(nh, params->visualization);
+  Visualization::getInstance().init(nh, params->visualization);
 
   // Subscribers & Publishers
   ros::Subscriber subMap = nh->subscribe(params->main.input_topic, 1, callback_ccat);

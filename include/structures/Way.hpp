@@ -51,11 +51,15 @@ class Way {
 
   bool containsEdge(const Edge &e) const;
 
+  Way &operator=(const Way &way);
+
+  bool operator==(const Way &way) const;
+
+  bool operator!=(const Way &way) const;
+
   std::vector<Point> getPath() const;
 
   Tracklimits getTracklimits() const;
-
-  as_msgs::PathLimits getPathLimits() const;
 
   friend std::ostream &operator<<(std::ostream &os, const Way &way);
 };

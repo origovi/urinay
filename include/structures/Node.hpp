@@ -8,6 +8,7 @@
 #include <as_msgs/Cone.h>
 
 #include "structures/Point.hpp"
+#include "structures/Vector.hpp"
 
 class Node {
  private:
@@ -32,6 +33,7 @@ class Node {
   const Point &point() const;
   const Point &pointGlobal() const;
   double distSq(const Point &p) const;
+  double angleWith(const Node &n0, const Node &n1) const;
   as_msgs::Cone cone() const;
   friend std::ostream &operator<<(std::ostream &os, const Node &n);
 };

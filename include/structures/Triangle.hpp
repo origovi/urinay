@@ -38,6 +38,7 @@ class Triangle {
   bool circleContainsNode(const Node &n) const;
   bool anyNodeInSuperTriangle() const;
   bool containsEdge(const Edge &e) const;
+  std::array<double, 3> angles() const;
   const Point &circumCenter() const;
   const Point &circumCenterGlobal() const;
   friend std::ostream &operator<<(std::ostream &os, const Triangle &t);

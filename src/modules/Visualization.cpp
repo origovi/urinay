@@ -1,12 +1,21 @@
 #include "modules/Visualization.hpp"
 
-Visualization::Visualization(ros::NodeHandle *const nh, const Params::Visualization &params) : nh(nh), params_(params) {
-  trianglesPub = nh->advertise<visualization_msgs::MarkerArray>(params_.triangulation_topic, 1);
-  midpointsPub = nh->advertise<visualization_msgs::MarkerArray>(params_.midpoints_topic, 1);
-  wayPub = nh->advertise<visualization_msgs::MarkerArray>(params_.way_topic, 1);
+Visualization &Visualization::getInstance() {
+  static Visualization vis;
+  return vis;
+}
+
+void Visualization::init(ros::NodeHandle *const nh, const Params::Visualization &params) {
+  params_ = params;
+  if (params.publish_markers) {
+    trianglesPub = nh->advertise<visualization_msgs::MarkerArray>(params_.triangulation_topic, 1);
+    midpointsPub = nh->advertise<visualization_msgs::MarkerArray>(params_.midpoints_topic, 1);
+    wayPub = nh->advertise<visualization_msgs::MarkerArray>(params_.way_topic, 1);
+  }
 }
 
 void Visualization::visualize(const TriangleSet &triSet) const {
+  if (not this->params_.publish_markers) return;
   visualization_msgs::MarkerArray ma;
   ma.markers.reserve(2 * triSet.size() + 3 * triSet.size() + 1);
   visualization_msgs::Marker mTriangulation, mCircumCenter, mMidpoint;
@@ -70,6 +79,7 @@ void Visualization::visualize(const TriangleSet &triSet) const {
 }
 
 void Visualization::visualize(const EdgeSet &edgeSet) const {
+  if (not this->params_.publish_markers) return;
   visualization_msgs::MarkerArray ma;
   ma.markers.reserve(edgeSet.size() + 1);
   visualization_msgs::Marker mMidpoint;
@@ -97,8 +107,9 @@ void Visualization::visualize(const EdgeSet &edgeSet) const {
 }
 
 void Visualization::visualize(const Way &way) const {
+  if (not this->params_.publish_markers) return;
   visualization_msgs::MarkerArray ma;
-  ma.markers.reserve(3*way.size() + 1);
+  ma.markers.reserve(3 * way.size() + 1);
   visualization_msgs::Marker mMidpoints, mLeft, mRight;
   size_t id = 0;
   mMidpoints.header.stamp = ros::Time::now();
@@ -143,7 +154,3 @@ void Visualization::visualize(const Way &way) const {
 
   wayPub.publish(ma);
 }
-
-/* -------------------------------------------------------------------------- */
-/*             un tema amb la distancia maxima, en els dos rosbags            */
-/* -------------------------------------------------------------------------- */

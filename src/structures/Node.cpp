@@ -59,6 +59,10 @@ double Node::distSq(const Point &p) const {
   return (this->x() - p.x) * (this->x() - p.x) + (this->y() - p.y) * (this->y() - p.y);
 }
 
+double Node::angleWith(const Node &n0, const Node &n1) const {
+  return abs(Vector(this->point(), n0.point()).angle(Vector(this->point(), n1.point())));
+}
+
 as_msgs::Cone Node::cone() const {
   as_msgs::Cone res;
   res.id = this->id;

@@ -20,6 +20,7 @@ class WayComputer {
  private:
   const Params::WayComputer params_;
   Way way_;
+  Way lastWay_;
   bool isLoopClosed_ = false;
 
   bool localTfValid_ = false;
@@ -50,7 +51,7 @@ class WayComputer {
 
   void poseCallback(const nav_msgs::Odometry::ConstPtr &data);
 
-  void update(TriangleSet &triangulation, const Visualization &vis);
+  void update(TriangleSet &triangulation);
 
   const bool &isLoopClosed() const;
 

@@ -23,11 +23,17 @@
 class Visualization {
  private:
   ros::Publisher trianglesPub, midpointsPub, wayPub;
-  ros::NodeHandle *const nh;
-  const Params::Visualization params_;
+  Params::Visualization params_;
 
  public:
-  Visualization(ros::NodeHandle *const nh, const Params::Visualization &params);
+  Visualization() = default;
+
+  // Singleton pattern
+  static Visualization &getInstance();
+  Visualization(Visualization const &) = delete;
+  void operator=(Visualization const &) = delete;
+
+  void init(ros::NodeHandle *const nh, const Params::Visualization &params);
   void visualize(const TriangleSet &triSet) const;
   void visualize(const EdgeSet &edgeSet) const;
   void visualize(const Way &way) const;

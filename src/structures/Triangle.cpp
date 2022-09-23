@@ -25,7 +25,7 @@ bool Triangle::operator==(const Triangle &t) const {
 }
 
 bool Triangle::operator!=(const Triangle &t) const {
-  return not (*this == t);
+  return not(*this == t);
 }
 
 bool Triangle::containsNode(const Node &n) const {
@@ -42,6 +42,13 @@ bool Triangle::anyNodeInSuperTriangle() const {
 
 bool Triangle::containsEdge(const Edge &e) const {
   return e == this->edges[0] or e == this->edges[1] or e == this->edges[2];
+}
+
+std::array<double, 3> Triangle::angles() const {
+  return {
+      nodes[0].angleWith(nodes[1], nodes[2]),
+      nodes[1].angleWith(nodes[0], nodes[2]),
+      nodes[2].angleWith(nodes[0], nodes[1])};
 }
 
 const Point &Triangle::circumCenter() const {
