@@ -25,7 +25,7 @@ void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
     return;
   }
 
-  Time::tick("callback");  // Start measuring time
+  Time::tick("computation");  // Start measuring time
 
   // Convert to Node vector
   std::vector<Node> nodes;
@@ -42,8 +42,9 @@ void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
 
   // Publish loop and write tracklimits to a file
   if (wayComputer->isLoopClosed()) {
-    ROS_INFO("[urinay] Tanco loop, adeu!");
     loopPub.publish(wayComputer->getPathLimits());
+    Time::tock("computation");  // End measuring time
+    ROS_INFO("[urinay] Tanco loop, adeu!");
     std::string loopDir = params->main.package_path + "/loops";
     mkdir(loopDir.c_str(), 0777);
     wayComputer->writeWayToFile(loopDir + "/loop.unay");
@@ -54,7 +55,7 @@ void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
     partialPub.publish(wayComputer->getPathLimits());
   }
 
-  Time::tock("callback");  // End measuring time
+  Time::tock("computation");  // End measuring time
 
   std::cout << std::endl;
 }
