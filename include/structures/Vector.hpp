@@ -3,8 +3,8 @@
 #include "structures/Point.hpp"
 
 class Vector : public Point {
- private:
  public:
+  Vector() = default;
   Vector(const Point &a, const Point &b);
   Vector(const double &x, const double &y);
   inline double dot(const Vector &v) const;

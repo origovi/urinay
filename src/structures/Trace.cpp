@@ -2,8 +2,8 @@
 
 /* ----------------------------- Private Methods ---------------------------- */
 
-Trace::Connection::Connection(const size_t &edgeInd, const float &heur, std::shared_ptr<Connection> before)
-    : edgeInd(edgeInd), before(before), heur(heur), size(before ? (before->size + 1) : 1) {}
+Trace::Connection::Connection(const size_t &edgeInd, const float &heur, const bool &loopClosed, std::shared_ptr<Connection> before)
+    : edgeInd(edgeInd), before(before), heur(heur), size(before ? (before->size + 1) : 1), loopClosed(before ? (before->loopClosed or loopClosed) : loopClosed) {}
 
 bool Trace::Connection::containsEdge(const size_t &_edgeInd) const {
   return edgeInd == _edgeInd || (before ? before->containsEdge(_edgeInd) : false);
@@ -17,12 +17,12 @@ Trace::Trace(std::shared_ptr<Connection> p)
 Trace::Trace()
     : p(nullptr) {}
 
-Trace::Trace(const size_t &edgeInd, const float &heur) {
-  this->p = std::make_shared<Connection>(edgeInd, heur, nullptr);
+Trace::Trace(const size_t &edgeInd, const float &heur, const bool &loopClosed) {
+  this->p = std::make_shared<Connection>(edgeInd, heur, loopClosed, nullptr);
 }
 
-void Trace::addEdge(const size_t &edgeInd, const float &heur) {
-  this->p = std::make_shared<Connection>(edgeInd, heur, this->p);
+void Trace::addEdge(const size_t &edgeInd, const float &heur, const bool &loopClosed) {
+  this->p = std::make_shared<Connection>(edgeInd, heur, loopClosed, this->p);
 }
 
 bool Trace::empty() const {
@@ -73,6 +73,11 @@ const size_t &Trace::edgeInd() const {
 const float &Trace::heur() const {
   ROS_ASSERT(not empty());
   return this->p->heur;
+}
+
+const bool &Trace::loopClosed() const {
+  ROS_ASSERT(not empty());
+  return this->p->loopClosed;
 }
 
 float Trace::sumHeur() const {

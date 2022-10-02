@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <memory>
+
 #include "structures/Edge.hpp"
 
 class Trace {
@@ -13,8 +14,9 @@ class Trace {
     const std::shared_ptr<Connection> before;
     const size_t size;
     const float heur;
+    const bool loopClosed;
 
-    Connection(const size_t &edgeInd, const float &heur, std::shared_ptr<Connection> before);
+    Connection(const size_t &edgeInd, const float &heur, const bool &loopClosed, std::shared_ptr<Connection> before);
 
     bool containsEdge(const size_t &_edgeInd) const;
 
@@ -36,9 +38,9 @@ class Trace {
  public:
   Trace();
 
-  Trace(const size_t &edgeInd, const float &heur = 0.0);
+  Trace(const size_t &edgeInd, const float &heur = 0.0, const bool &loopClosed = false);
 
-  void addEdge(const size_t &edgeInd, const float &heur = 0.0);
+  void addEdge(const size_t &edgeInd, const float &heur = 0.0, const bool &loopClosed = false);
 
   bool empty() const;
 
@@ -56,6 +58,8 @@ class Trace {
   const size_t &edgeInd() const;
 
   const float &heur() const;
+
+  const bool &loopClosed() const;
 
   float sumHeur() const;
 

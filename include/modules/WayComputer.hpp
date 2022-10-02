@@ -34,8 +34,7 @@ class WayComputer {
   float getHeuristic(const Point &actPos, const Point &nextPos, const Vector &dir) const;
 
   void findNextEdges(std::vector<HeurInd> &nextEdges,
-                     const Edge *actEdge,
-                     const Vector &dir,
+                     const Trace *actTrace,
                      const KDTree &midpointsKDT,
                      const std::vector<Edge> &edges) const;
 

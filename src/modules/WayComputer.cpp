@@ -60,9 +60,39 @@ float WayComputer::getHeuristic(const Point &actPos, const Point &nextPos, const
   return params_.heur_dist_ponderation * distHeur + (1 - params_.heur_dist_ponderation) * angleHeur;
 }
 
-void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Edge *actEdge, const Vector &dir, const KDTree &midpointsKDT, const std::vector<Edge> &edges) const {
+void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *actTrace, const KDTree &midpointsKDT, const std::vector<Edge> &edges) const {
   nextEdges.clear();
-  Point actPos = actEdge ? actEdge->midPoint() : Point(0, 0);
+
+  const Edge *actEdge = nullptr;
+  Point actPos(0, 0);
+  Point lastPos(0, 0);
+
+  // Set actual and last position
+  if (actTrace and not actTrace->empty()) {
+    actEdge = &edges[actTrace->edgeInd()];
+    actPos = edges[actTrace->edgeInd()].midPoint();
+    if (actTrace->size() >= 2) {
+      lastPos = edges[actTrace->before().edgeInd()].midPoint();
+    }
+  }
+  if (not this->way_.empty()) {
+    if (not actEdge) {
+      actEdge = &this->way_.back();
+      actPos = this->way_.back().midPoint();
+      if (this->way_.size() >= 2) {
+        lastPos = this->way_.beforeBack().midPoint();
+      }
+    } else if (actTrace->size() < 2) {
+      lastPos = this->way_.back().midPoint();
+    }
+  }
+
+  // Set dir vector
+  Vector dir;
+  if (actEdge and (this->way_.size() >= 2 or actTrace))  // This condition avoids setting a vector pointing backwards
+    dir = Vector(lastPos, actPos);
+  else
+    dir = Vector(1, 0);
 
   // Find all possible edges in a specified radius
   std::unordered_set<size_t> nextPossibleEdges = midpointsKDT.neighborhood_indices_set(actPos, params_.search_radius);
@@ -74,7 +104,17 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Edge *act
   auto it = nextPossibleEdges.begin();
   while (it != nextPossibleEdges.end()) {
     const Edge &nextPossibleEdge = edges[*it];
-    if (&edges[*it] == actEdge or Vector::pointBehind(nextPossibleEdge.midPoint(), actPos, dir) or (actEdge and not this->way_.closesLoopWith(nextPossibleEdge) and this->way_.containsEdge(nextPossibleEdge)))
+    bool removeConditions =
+        // Remove itself from being the next one
+        (actEdge and nextPossibleEdge == *actEdge) or
+
+        // Remove any edge whose midpoint is behind (has an angle greater than 90 deg.)
+        Vector::pointBehind(nextPossibleEdge.midPoint(), actPos, dir) or
+
+        // [Only before appending the edge that closes the loop] Remove any edge that is already contained in the path but is not the one that closes the loop
+        (actEdge and not this->way_.closesLoopWith(nextPossibleEdge) and (not actTrace or not actTrace->loopClosed()) and this->way_.containsEdge(nextPossibleEdge));
+
+    if (removeConditions)
       it = nextPossibleEdges.erase(it);
     else
       it++;
@@ -110,17 +150,8 @@ void WayComputer::computeWay(const std::vector<Edge> &edges) {
   // element of the longest with lower heuristic Trace will be added to the
   // way. The search finishes when no element can be added to the way.
   std::vector<HeurInd> nextEdges;
-  const Edge *actEdge = nullptr;
-  Point actPos = Point(1, 0);
-  Point antPos = Point(0, 0);
-  if (not this->way_.empty()) {
-    actEdge = &this->way_.back();
-    if (this->way_.size() >= 2) {
-      actPos = this->way_.back().midPoint();
-      antPos = this->way_.beforeBack().midPoint();
-    }
-  }
-  this->findNextEdges(nextEdges, actEdge, Vector(antPos, actPos), midpointsKDT, edges);
+
+  this->findNextEdges(nextEdges, nullptr, midpointsKDT, edges);
 
   // Main outer loop, every iteration of this loop will involve adding one
   // midpoint to the path.
@@ -149,20 +180,14 @@ void WayComputer::computeWay(const std::vector<Edge> &edges) {
       if (t.size() >= params_.max_search_tree_height)
         trace_at_max_height = true;
       else {
-        Point actPos = edges[t.edgeInd()].midPoint();
-        Point antPos(0, 0);
-        if (t.size() >= 2)
-          antPos = edges[t.before().edgeInd()].midPoint();
-        else if (not this->way_.empty())
-          antPos = this->way_.back().midPoint();
-        this->findNextEdges(nextEdges, &edges[t.edgeInd()], Vector(antPos, actPos), midpointsKDT, edges);
+        this->findNextEdges(nextEdges, &t, midpointsKDT, edges);
       }
 
       if (trace_at_max_height or nextEdges.empty()) {
         // Means that this trace is finished, should be considered as the "best"
         // trace. The method of choosing the best trace is as follows:
         // 1. The longest trace wins.
-        // 2. If the size is equal, then the trace with smaller heuristic wins.
+        // 2. If the size is equal, then the trace with smallest accum heuristic wins.
         // Note that here, no trace is added to the queue.
         if (t.size() > best.size() or (t.size() == best.size() and t.sumHeur() < best.sumHeur())) {
           best = t;
@@ -171,15 +196,14 @@ void WayComputer::computeWay(const std::vector<Edge> &edges) {
         // Add new possible traces to the queue
         for (const HeurInd &nextEdge : nextEdges) {
           Trace aux = t;
-          aux.addEdge(nextEdge.second, nextEdge.first);
+          bool closesLoop = this->way_.closesLoopWith(edges[nextEdge.second]);
+          aux.addEdge(nextEdge.second, nextEdge.first, closesLoop);
           cua.push(aux);
         }
       }
     }
 
     const Edge &edgeToAppend = edges[best.first().edgeInd()];
-    Point nextPos = edgeToAppend.midPoint();
-    actPos = this->way_.back().midPoint();
 
     this->way_.addEdge(edgeToAppend);
 
@@ -190,7 +214,7 @@ void WayComputer::computeWay(const std::vector<Edge> &edges) {
       return;
     }
 
-    this->findNextEdges(nextEdges, &edgeToAppend, Vector(actPos, nextPos), midpointsKDT, edges);
+    this->findNextEdges(nextEdges, nullptr, midpointsKDT, edges);
   }
 }
 
@@ -250,7 +274,7 @@ void WayComputer::update(TriangleSet &triangulation) {
 
   // #5: Perform the search through the midpoints in order to obtain a way.
   this->computeWay(edgeVec);
-  
+
   // #6: Visualize
   Visualization::getInstance().visualize(edgeSet);
   Visualization::getInstance().visualize(triangulation);
