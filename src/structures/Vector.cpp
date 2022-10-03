@@ -14,7 +14,7 @@ double Vector::dot(const Vector &v) const {
   return this->x * v.x + this->y * v.y;
 }
 
-double Vector::angle(const Vector &v) const {
+double Vector::angleWith(const Vector &v) const {
   double det = this->x * v.y - this->y * v.x;
   return atan2(det, this->dot(v));
 }

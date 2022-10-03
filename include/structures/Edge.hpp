@@ -21,6 +21,7 @@ class Edge {
   void updateLocal(const Eigen::Affine3d &tf);
   Point midPoint() const;
   Point midPointGlobal() const;
+  Vector normal() const;
 };
 
 template <>

@@ -2,7 +2,13 @@
 
 /* ----------------------------- Private Methods ---------------------------- */
 
+Params::WayComputer::Way Way::params_;
+
 /* ----------------------------- Public Methods ----------------------------- */
+
+void Way::init(const Params::WayComputer::Way &params) {
+  params_ = params;
+}
 
 bool Way::empty() const {
   return this->path_.empty();
@@ -58,11 +64,17 @@ void Way::trimByLocal() {
 }
 
 bool Way::closesLoop() const {
-  return this->size() >= this->MIN_SIZE_FOR_LOOP and Point::distSq(this->front().midPointGlobal(), this->back().midPointGlobal()) < this->MIN_DIST_LOOP_CLOSURE * this->MIN_DIST_LOOP_CLOSURE;
+  return this->size() >= params_.min_loop_size and Point::distSq(this->front().midPointGlobal(), this->back().midPointGlobal()) <= params_.max_dist_loop_closure * params_.max_dist_loop_closure;
 }
 
 bool Way::closesLoopWith(const Edge &e) const {
-  return this->size() + 1 >= this->MIN_SIZE_FOR_LOOP and Point::distSq(this->front().midPointGlobal(), e.midPointGlobal()) < this->MIN_DIST_LOOP_CLOSURE * this->MIN_DIST_LOOP_CLOSURE;
+  return
+      // Must have a minimum size
+      this->size() + 1 >= params_.min_loop_size and
+      // Distance conditions are met
+      Point::distSq(this->front().midPointGlobal(), e.midPointGlobal()) <= params_.max_dist_loop_closure * params_.max_dist_loop_closure and
+      // Check closure angle with first point
+      abs(Vector(this->front().midPoint(), (++this->path_.begin())->midPoint()).angleWith(Vector(this->back().midPoint(), e.midPoint()))) <= params_.max_angle_diff_loop_closure;
 }
 
 void Way::restructureClosure() {

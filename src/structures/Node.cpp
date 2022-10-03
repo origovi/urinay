@@ -60,7 +60,7 @@ double Node::distSq(const Point &p) const {
 }
 
 double Node::angleWith(const Node &n0, const Node &n1) const {
-  return abs(Vector(this->point(), n0.point()).angle(Vector(this->point(), n1.point())));
+  return abs(Vector(this->point(), n0.point()).angleWith(Vector(this->point(), n1.point())));
 }
 
 as_msgs::Cone Node::cone() const {

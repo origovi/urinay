@@ -54,7 +54,7 @@ void WayComputer::filterMidpoints(EdgeSet &edges, const TriangleSet &triangulati
 float WayComputer::getHeuristic(const Point &actPos, const Point &nextPos, const Vector &dir) const {
   double distHeur = Point::dist(actPos, nextPos);
 
-  double angle = Vector(actPos, nextPos).angle(dir);
+  double angle = Vector(actPos, nextPos).angleWith(dir);
   double angleHeur = -log(std::max(0.0, ((M_PI_2 - abs(angle)) / M_PI_2) - 0.2));
 
   return params_.heur_dist_ponderation * distHeur + (1 - params_.heur_dist_ponderation) * angleHeur;
@@ -104,15 +104,19 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *ac
   auto it = nextPossibleEdges.begin();
   while (it != nextPossibleEdges.end()) {
     const Edge &nextPossibleEdge = edges[*it];
-    bool removeConditions =
+    bool removeConditions = actEdge and (
         // Remove itself from being the next one
-        (actEdge and nextPossibleEdge == *actEdge) or
+        nextPossibleEdge == *actEdge or
 
-        // Remove any edge whose midpoint is behind (has an angle greater than 90 deg.)
-        Vector::pointBehind(nextPossibleEdge.midPoint(), actPos, dir) or
+        // Remove any edge whose midpoint create an angle too closed with last one
+        abs(dir.angleWith(Vector(actPos, nextPossibleEdge.midPoint()))) > this->params_.max_angle_diff or
 
         // [Only before appending the edge that closes the loop] Remove any edge that is already contained in the path but is not the one that closes the loop
-        (actEdge and not this->way_.closesLoopWith(nextPossibleEdge) and (not actTrace or not actTrace->loopClosed()) and this->way_.containsEdge(nextPossibleEdge));
+        (not this->way_.closesLoopWith(nextPossibleEdge) and (not actTrace or not actTrace->loopClosed()) and this->way_.containsEdge(nextPossibleEdge)) or
+        
+        // Remove any edge whose midpoint and lastPos are in the same side of actEdge (avoid bouncing on a track limit)
+        ((this->way_.size() >= 2 or actTrace) and Vector::pointBehind(actEdge->midPoint(), lastPos, actEdge->normal()) == Vector::pointBehind(actEdge->midPoint(), nextPossibleEdge.midPoint(), actEdge->normal()))
+    );
 
     if (removeConditions)
       it = nextPossibleEdges.erase(it);
@@ -220,7 +224,9 @@ void WayComputer::computeWay(const std::vector<Edge> &edges) {
 
 /* ----------------------------- Public Methods ----------------------------- */
 
-WayComputer::WayComputer(const Params::WayComputer &params) : params_(params) {}
+WayComputer::WayComputer(const Params::WayComputer &params) : params_(params) {
+  Way::init(params.way);
+}
 
 void WayComputer::poseCallback(const nav_msgs::Odometry::ConstPtr &data) {
   tf::poseMsgToEigen(data->pose.pose, this->localTf_);

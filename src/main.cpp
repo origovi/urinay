@@ -43,12 +43,15 @@ void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
   // Publish loop and write tracklimits to a file
   if (wayComputer->isLoopClosed()) {
     loopPub.publish(wayComputer->getPathLimits());
-    Time::tock("computation");  // End measuring time
-    ROS_INFO("[urinay] Tanco loop, adeu!");
+    ROS_INFO("[urinay] Tanco loop");
     std::string loopDir = params->main.package_path + "/loops";
     mkdir(loopDir.c_str(), 0777);
     wayComputer->writeWayToFile(loopDir + "/loop.unay");
-    ros::shutdown();
+    if (params->main.shutdown_on_loop_closure) {
+      Time::tock("computation");  // End measuring time
+      ROS_INFO("[urinay] Tingui bon dia :)");
+      ros::shutdown();
+    }
   }
   // Publish partial
   else {

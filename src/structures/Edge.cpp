@@ -47,3 +47,7 @@ Point Edge::midPoint() const {
 Point Edge::midPointGlobal() const {
   return (this->n0().pointGlobal() + this->n1().pointGlobal()) / 2.0;
 }
+
+Vector Edge::normal() const {
+  return Vector(this->n0().point(), this->n1().point()).rotClock();
+}

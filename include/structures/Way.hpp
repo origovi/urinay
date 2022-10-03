@@ -9,24 +9,18 @@
 #include "structures/Edge.hpp"
 #include "structures/Node.hpp"
 #include "structures/Vector.hpp"
+#include "utils/Params.hpp"
 #include "utils/definitions.hpp"
 
 class Way {
  private:
-  // Min loop size in order to make it eligible to be closed.
-  const int MIN_SIZE_FOR_LOOP = 25;
-
-  // At some point there MUST be a minimum distance of X meters between
-  // this->front().midpointGlobal() and way.front().midpointGlobal(), to avoid
-  // false detections of loop closure at the beginning.
-  const double MIN_DIST_PATHS_FRONT = 5.0;
-
-  // Min distance between path front and back to detect it as a loop.
-  const double MIN_DIST_LOOP_CLOSURE = 2.0;
+  static Params::WayComputer::Way params_;
 
   std::list<Edge> path_;
 
  public:
+  static void init(const Params::WayComputer::Way &params);
+
   bool empty() const;
 
   size_t size() const;
