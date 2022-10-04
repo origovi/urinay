@@ -133,6 +133,7 @@ void Visualization::visualize(const Way &way) const {
   mRight.color.g = 0.0;
   mRight.color.b = 0.5;
 
+  mMidpoints.color.a = 0.5;
   mMidpoints.id = id++;
   for (const Point &p : way.getPath()) {
     mMidpoints.points.push_back(p.gmPoint());

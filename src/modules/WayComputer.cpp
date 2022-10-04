@@ -169,12 +169,12 @@ void WayComputer::computeWay(const std::vector<Edge> &edges) {
   // Main outer loop, every iteration of this loop will involve adding one
   // midpoint to the path.
   while (not nextEdges.empty() and ros::ok()) {
-    Trace best;
     std::queue<Trace> cua;
     for (const HeurInd &nextEdge : nextEdges) {
       bool closesLoop = this->way_.closesLoopWith(edges[nextEdge.second]);
-      cua.emplace(nextEdge.second, nextEdge.first, closesLoop);
+      cua.emplace(nextEdge.second, nextEdge.first, edges[nextEdge.second].len, closesLoop);
     }
+    Trace best = cua.back();
 
     // Inner loop, it will realize the tree search and get the longest (& best)
     // path.

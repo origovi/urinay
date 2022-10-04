@@ -22,7 +22,7 @@
 
 class Visualization {
  private:
-  ros::Publisher trianglesPub, midpointsPub, wayPub, indPub;
+  ros::Publisher trianglesPub, midpointsPub, wayPub;
   Params::Visualization params_;
 
  public:
