@@ -10,6 +10,9 @@ void Way::init(const Params::WayComputer::Way &params) {
   params_ = params;
 }
 
+Way::Way()
+    : avgEdgeLen_(0.0) {}
+
 bool Way::empty() const {
   return this->path_.empty();
 }
@@ -39,6 +42,7 @@ void Way::updateLocal(const Eigen::Affine3d &tf) {
 
 void Way::addEdge(const Edge &edge) {
   this->path_.push_back(edge);
+  this->avgEdgeLen_ += (edge.len - this->avgEdgeLen_) / this->size();
 }
 
 void Way::trimByLocal() {
@@ -60,6 +64,14 @@ void Way::trimByLocal() {
   if (smallestDWFIt != std::prev(this->path_.end())) {
     // Erase all elements after closest element (included)
     this->path_.erase(++smallestDWFIt, this->path_.end());
+  }
+
+  // Recalculate the mean edge length attribute
+  size_t t = 1;
+  this->avgEdgeLen_ = 0.0;
+  for (auto it = this->path_.begin(); it != this->path_.end(); it++) {
+    this->avgEdgeLen_ += (it->len - this->avgEdgeLen_) / t;
+    t++;
   }
 }
 
@@ -169,6 +181,10 @@ bool Way::operator==(const Way &way) const {
 
 bool Way::operator!=(const Way &way) const {
   return not(*this == way);
+}
+
+const double &Way::getAvgEdgeLen() const {
+  return this->avgEdgeLen_;
 }
 
 std::ostream &operator<<(std::ostream &os, const Way &way) {

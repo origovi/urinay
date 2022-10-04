@@ -18,8 +18,12 @@ class Way {
 
   std::list<Edge> path_;
 
+  double avgEdgeLen_;
+
  public:
   static void init(const Params::WayComputer::Way &params);
+
+  Way();
 
   bool empty() const;
 
@@ -50,6 +54,8 @@ class Way {
   bool operator==(const Way &way) const;
 
   bool operator!=(const Way &way) const;
+
+  const double &getAvgEdgeLen() const;
 
   std::vector<Point> getPath() const;
 

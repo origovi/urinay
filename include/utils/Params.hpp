@@ -15,7 +15,7 @@ class Params {
   struct WayComputer {
     double max_triangle_edge_len, min_triangle_angle, max_dist_circum_midPoint;
     int max_search_tree_height, max_search_options;
-    double search_radius, max_angle_diff;
+    double search_radius, max_angle_diff, edge_len_diff_factor;
     float max_next_heuristic, heur_dist_ponderation;
     float max_treeSearch_time;
     struct Way {

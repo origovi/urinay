@@ -21,6 +21,7 @@ Params::Params(ros::NodeHandle *const nh) {
   nh->param<int>(ns + "/max_search_tree_height", wayComputer.max_search_tree_height, 5);
   nh->param<double>(ns + "/search_radius", wayComputer.search_radius, 5.0);
   nh->param<double>(ns + "/max_angle_diff", wayComputer.max_angle_diff, 0.6);
+  nh->param<double>(ns + "/edge_len_diff_factor", wayComputer.edge_len_diff_factor, 0.5);
   nh->param<int>(ns + "/max_search_options", wayComputer.max_search_options, 2);
   nh->param<float>(ns + "/max_next_heuristic", wayComputer.max_next_heuristic, 3.0);
   nh->param<float>(ns + "/heur_dist_ponderation", wayComputer.heur_dist_ponderation, 0.6);

@@ -33,6 +33,8 @@ class WayComputer {
 
   float getHeuristic(const Point &actPos, const Point &nextPos, const Vector &dir) const;
 
+  inline double avgEdgeLen(const Trace *trace) const;
+
   void findNextEdges(std::vector<HeurInd> &nextEdges,
                      const Trace *actTrace,
                      const KDTree &midpointsKDT,

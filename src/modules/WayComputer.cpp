@@ -60,6 +60,15 @@ float WayComputer::getHeuristic(const Point &actPos, const Point &nextPos, const
   return params_.heur_dist_ponderation * distHeur + (1 - params_.heur_dist_ponderation) * angleHeur;
 }
 
+inline double WayComputer::avgEdgeLen(const Trace *trace) const {
+  if (not trace or trace->empty())
+    return this->way_.getAvgEdgeLen();
+  else if (this->way_.empty())
+    return trace->avgEdgeLen();
+  else
+    return ((trace->avgEdgeLen() * trace->size()) / (trace->size() + this->way_.size())) + ((this->way_.getAvgEdgeLen() * this->way_.size()) / (trace->size() + this->way_.size()));
+}
+
 void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *actTrace, const KDTree &midpointsKDT, const std::vector<Edge> &edges) const {
   nextEdges.clear();
 
@@ -97,25 +106,25 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *ac
   // Find all possible edges in a specified radius
   std::unordered_set<size_t> nextPossibleEdges = midpointsKDT.neighborhood_indices_set(actPos, params_.search_radius);
 
-  // Discard:
-  // - all Edges whose midpoint is behind actPos
-  // - the one that corresponds to actPos
-  // - (not in first iteration) all Edges already contained in the Way that do not close the loop
+  // Discard edges by specifications
   auto it = nextPossibleEdges.begin();
   while (it != nextPossibleEdges.end()) {
     const Edge &nextPossibleEdge = edges[*it];
     bool removeConditions = actEdge and (
-        // Remove itself from being the next one
-        nextPossibleEdge == *actEdge or
+      // Remove itself from being the next one
+      nextPossibleEdge == *actEdge or
 
-        // Remove any edge whose midpoint create an angle too closed with last one
-        abs(dir.angleWith(Vector(actPos, nextPossibleEdge.midPoint()))) > this->params_.max_angle_diff or
+      // Remove any edge whose midpoint create an angle too closed with last one
+      abs(dir.angleWith(Vector(actPos, nextPossibleEdge.midPoint()))) > this->params_.max_angle_diff or
 
-        // [Only before appending the edge that closes the loop] Remove any edge that is already contained in the path but is not the one that closes the loop
-        (not this->way_.closesLoopWith(nextPossibleEdge) and (not actTrace or not actTrace->isLoopClosed()) and this->way_.containsEdge(nextPossibleEdge)) or
-        
-        // Remove any edge whose midpoint and lastPos are in the same side of actEdge (avoid bouncing on a track limit)
-        ((this->way_.size() >= 2 or actTrace) and Vector::pointBehind(actEdge->midPoint(), lastPos, actEdge->normal()) == Vector::pointBehind(actEdge->midPoint(), nextPossibleEdge.midPoint(), actEdge->normal()))
+      // [Only before appending the edge that closes the loop] Remove any edge that is already contained in the path but is not the one that closes the loop
+      (not this->way_.closesLoopWith(nextPossibleEdge) and (not actTrace or not actTrace->isLoopClosed()) and this->way_.containsEdge(nextPossibleEdge)) or
+
+      // Remove any edge whose midpoint and lastPos are in the same side of actEdge (avoid bouncing on a track limit)
+      ((this->way_.size() >= 2 or actTrace) and Vector::pointBehind(actEdge->midPoint(), lastPos, actEdge->normal()) == Vector::pointBehind(actEdge->midPoint(), nextPossibleEdge.midPoint(), actEdge->normal())) or
+
+      // Remove any edge whose length is too big or too small compared to the average edge length of the way
+      (nextPossibleEdge.len < (1 - this->params_.edge_len_diff_factor) * this->avgEdgeLen(actTrace) or nextPossibleEdge.len > (1 + this->params_.edge_len_diff_factor) * this->avgEdgeLen(actTrace))
     );
 
     if (removeConditions)
@@ -202,7 +211,7 @@ void WayComputer::computeWay(const std::vector<Edge> &edges) {
           Point actPos = edges[t.edgeInd()].midPoint();
           bool closesLoop = this->way_.closesLoopWith(edges[nextEdge.second], &actPos);
           Trace aux = t;
-          aux.addEdge(nextEdge.second, nextEdge.first, closesLoop);
+          aux.addEdge(nextEdge.second, nextEdge.first, edges[nextEdge.second].len, closesLoop);
           cua.push(aux);
         }
       }

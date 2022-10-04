@@ -14,9 +14,10 @@ class Trace {
     const std::shared_ptr<Connection> before;
     const size_t size;
     const float heur;
+    const double avgEdgeLen;
     const bool loopClosed;
 
-    Connection(const size_t &edgeInd, const float &heur, const bool &loopClosed, std::shared_ptr<Connection> before);
+    Connection(const size_t &edgeInd, const float &heur, const double &edgeLen, const bool &loopClosed, std::shared_ptr<Connection> before);
 
     bool containsEdge(const size_t &_edgeInd) const;
 
@@ -38,9 +39,9 @@ class Trace {
  public:
   Trace();
 
-  Trace(const size_t &edgeInd, const float &heur = 0.0, const bool &loopClosed = false);
+  Trace(const size_t &edgeInd, const float &heur, const double &edgeLen, const bool &loopClosed = false);
 
-  void addEdge(const size_t &edgeInd, const float &heur = 0.0, const bool &loopClosed = false);
+  void addEdge(const size_t &edgeInd, const float &heur, const double &edgeLen, const bool &loopClosed = false);
 
   bool empty() const;
 
@@ -58,6 +59,8 @@ class Trace {
   const size_t &edgeInd() const;
 
   const float &heur() const;
+
+  const double &avgEdgeLen() const;
 
   const bool &isLoopClosed() const;
 
