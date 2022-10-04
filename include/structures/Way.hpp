@@ -37,7 +37,7 @@ class Way {
 
   void trimByLocal();
 
-  bool closesLoopWith(const Edge &e) const;
+  bool closesLoopWith(const Edge &e, const Point *lastPosInTrace = nullptr) const;
 
   void restructureClosure();
 

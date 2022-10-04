@@ -59,7 +59,7 @@ class Trace {
 
   const float &heur() const;
 
-  const bool &loopClosed() const;
+  const bool &isLoopClosed() const;
 
   float sumHeur() const;
 

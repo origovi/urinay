@@ -75,7 +75,7 @@ const float &Trace::heur() const {
   return this->p->heur;
 }
 
-const bool &Trace::loopClosed() const {
+const bool &Trace::isLoopClosed() const {
   ROS_ASSERT(not empty());
   return this->p->loopClosed;
 }

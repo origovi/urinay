@@ -112,7 +112,7 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *ac
         abs(dir.angleWith(Vector(actPos, nextPossibleEdge.midPoint()))) > this->params_.max_angle_diff or
 
         // [Only before appending the edge that closes the loop] Remove any edge that is already contained in the path but is not the one that closes the loop
-        (not this->way_.closesLoopWith(nextPossibleEdge) and (not actTrace or not actTrace->loopClosed()) and this->way_.containsEdge(nextPossibleEdge)) or
+        (not this->way_.closesLoopWith(nextPossibleEdge) and (not actTrace or not actTrace->isLoopClosed()) and this->way_.containsEdge(nextPossibleEdge)) or
         
         // Remove any edge whose midpoint and lastPos are in the same side of actEdge (avoid bouncing on a track limit)
         ((this->way_.size() >= 2 or actTrace) and Vector::pointBehind(actEdge->midPoint(), lastPos, actEdge->normal()) == Vector::pointBehind(actEdge->midPoint(), nextPossibleEdge.midPoint(), actEdge->normal()))
@@ -163,7 +163,8 @@ void WayComputer::computeWay(const std::vector<Edge> &edges) {
     Trace best;
     std::queue<Trace> cua;
     for (const HeurInd &nextEdge : nextEdges) {
-      cua.emplace(nextEdge.second, nextEdge.first);
+      bool closesLoop = this->way_.closesLoopWith(edges[nextEdge.second]);
+      cua.emplace(nextEdge.second, nextEdge.first, closesLoop);
     }
 
     // Inner loop, it will realize the tree search and get the longest (& best)
@@ -183,9 +184,8 @@ void WayComputer::computeWay(const std::vector<Edge> &edges) {
 
       if (t.size() >= params_.max_search_tree_height)
         trace_at_max_height = true;
-      else {
+      else
         this->findNextEdges(nextEdges, &t, midpointsKDT, edges);
-      }
 
       if (trace_at_max_height or nextEdges.empty()) {
         // Means that this trace is finished, should be considered as the "best"
@@ -199,8 +199,9 @@ void WayComputer::computeWay(const std::vector<Edge> &edges) {
       } else {
         // Add new possible traces to the queue
         for (const HeurInd &nextEdge : nextEdges) {
+          Point actPos = edges[t.edgeInd()].midPoint();
+          bool closesLoop = this->way_.closesLoopWith(edges[nextEdge.second], &actPos);
           Trace aux = t;
-          bool closesLoop = this->way_.closesLoopWith(edges[nextEdge.second]);
           aux.addEdge(nextEdge.second, nextEdge.first, closesLoop);
           cua.push(aux);
         }

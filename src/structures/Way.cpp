@@ -64,28 +64,29 @@ void Way::trimByLocal() {
 }
 
 bool Way::closesLoop() const {
-  return this->size() >= params_.min_loop_size and Point::distSq(this->front().midPointGlobal(), this->back().midPointGlobal()) <= params_.max_dist_loop_closure * params_.max_dist_loop_closure;
+  return this->size() >= params_.min_loop_size and Point::distSq(this->front().midPoint(), this->back().midPoint()) <= params_.max_dist_loop_closure * params_.max_dist_loop_closure;
 }
 
-bool Way::closesLoopWith(const Edge &e) const {
+bool Way::closesLoopWith(const Edge &e, const Point *lastPosInTrace) const {
+  Point actPos = lastPosInTrace ? *lastPosInTrace : this->back().midPoint();
   return
       // Must have a minimum size
       this->size() + 1 >= params_.min_loop_size and
       // Distance conditions are met
-      Point::distSq(this->front().midPointGlobal(), e.midPointGlobal()) <= params_.max_dist_loop_closure * params_.max_dist_loop_closure and
+      Point::distSq(this->front().midPoint(), e.midPoint()) <= params_.max_dist_loop_closure * params_.max_dist_loop_closure and
       // Check closure angle with first point
-      abs(Vector(this->front().midPoint(), (++this->path_.begin())->midPoint()).angleWith(Vector(this->back().midPoint(), e.midPoint()))) <= params_.max_angle_diff_loop_closure;
+      abs(Vector(this->front().midPoint(), (++this->path_.begin())->midPoint()).angleWith(Vector(actPos, e.midPoint()))) <= params_.max_angle_diff_loop_closure;
 }
 
 void Way::restructureClosure() {
   if (this->front() == this->back()) return;
 
   // Assume last Edge is the one that closes the loop
-  double distClosestWithLast = Point::distSq(this->front().midPointGlobal(), this->back().midPointGlobal());
+  double distClosestWithLast = Point::distSq(this->front().midPoint(), this->back().midPoint());
   auto closestWithLastIt = this->path_.begin();
 
   for (auto it = this->path_.begin(); it != std::prev(this->path_.end(), 5); it++) {  // The 5 is for safety
-    double distWithLast = Point::distSq(this->back().midPointGlobal(), it->midPointGlobal());
+    double distWithLast = Point::distSq(this->back().midPoint(), it->midPoint());
     if (distWithLast <= distClosestWithLast) {
       distClosestWithLast = distWithLast;
       closestWithLastIt = it;
