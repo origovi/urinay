@@ -134,7 +134,7 @@ Tracklimits Way::getTracklimits() const {
   Tracklimits res;
   res.first.reserve(this->size());
   res.second.reserve(this->size());
-  Point pAnt(0, 0);  // This only works in a global
+  Point pAnt = this->empty() ? Point(0, 0) : this->front().midPointGlobal() - Point(1, 0);  // This only works in a global
 
   const Node *left;
   const Node *right;
