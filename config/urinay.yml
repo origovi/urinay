@@ -18,7 +18,7 @@ marker_topics:
 # Filtering
 max_triangle_edge_len:          7.0     # double [m]   all triangles will have all edge lenghts below max_triangle_edge_len
 min_triangle_angle:             0.35    # double [rad] all triangles with any angle below this, will be removed
-max_dist_circum_midPoint:       1.5     # double [m]
+max_dist_circum_midPoint:       3     # double [m]
 
 # Search
 max_search_tree_height:         7       # int    [num] max length of a path in the tree search, this is the horizon length of the program. The greater the better.
@@ -31,7 +31,7 @@ heur_dist_ponderation:          0.4     # float  [-]   minumum 0.0, maximum 1.0.
 max_treeSearch_time:            0.05    # float  [s]   maximum time that a tree search can take, otherwise, the search will be stopped and the best midpoint until then will be chosen (and appended to the path), we can assume that the overall max time will be this*num_of_midpoints_in_path_from_car_to_end
 
 # Loop Closure
-shutdown_on_loop_closure:       true    # bool   [-]   whether or not it will shut itself down after a loop was closed.
+shutdown_on_loop_closure:       false    # bool   [-]   whether or not it will shut itself down after a loop was closed.
 min_loop_size:                  25      # int    [num] minimum number of midpoints required to be able to make a loop closure.
 max_dist_loop_closure:          1.0     # double [m]   maximum distance between first and last midpoint to consider it a loop.
 max_angle_diff_loop_closure:    0.65     # double [rad] maximum angle difference between first and last midpoints. Expected to be same as max_angle_diff but it may come in hand having two separated.

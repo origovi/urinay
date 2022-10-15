@@ -25,9 +25,9 @@ void Visualization::visualize(const TriangleSet &triSet) const {
   mTriangulation.color.a = 1.0;
   mTriangulation.color.r = 1.0;
   mTriangulation.pose.orientation.w = 1.0;
-  mTriangulation.scale.x = 0.1;
-  mTriangulation.scale.y = 0.1;
-  mTriangulation.scale.z = 0.0;
+  mTriangulation.scale.x = 0.05;
+  mTriangulation.scale.y = 0.05;
+  mTriangulation.scale.z = 0.01;
   mTriangulation.type = visualization_msgs::Marker::CYLINDER;
   mTriangulation.id = id++;
   mTriangulation.action = visualization_msgs::Marker::DELETEALL;
@@ -36,9 +36,9 @@ void Visualization::visualize(const TriangleSet &triSet) const {
   mTriangulation.action = visualization_msgs::Marker::ADD;
 
   mCircumCenter = mTriangulation;
-  mCircumCenter.scale.x = 0.2;
-  mCircumCenter.scale.y = 0.2;
-  mCircumCenter.scale.z = 0.1;
+  mCircumCenter.scale.x = 0.1;
+  mCircumCenter.scale.y = 0.1;
+  mCircumCenter.scale.z = 0.05;
   mCircumCenter.color.r = 0.0;
   mCircumCenter.color.g = 0.0;
   mCircumCenter.color.b = 1.0;
@@ -89,9 +89,9 @@ void Visualization::visualize(const EdgeSet &edgeSet) const {
   mMidpoint.color.a = 1.0;
   mMidpoint.color.r = 1.0;
   mMidpoint.pose.orientation.w = 1.0;
-  mMidpoint.scale.x = 0.08;
-  mMidpoint.scale.y = 0.08;
-  mMidpoint.scale.z = 0.2;
+  mMidpoint.scale.x = 0.04;
+  mMidpoint.scale.y = 0.04;
+  mMidpoint.scale.z = 0.1;
   mMidpoint.type = visualization_msgs::Marker::CYLINDER;
   mMidpoint.id = id++;
   mMidpoint.action = visualization_msgs::Marker::DELETEALL;
@@ -117,9 +117,9 @@ void Visualization::visualize(const Way &way) const {
   mMidpoints.color.a = 1.0;
   mMidpoints.color.g = 1.0;
   mMidpoints.pose.orientation.w = 1.0;
-  mMidpoints.scale.x = 0.2;
-  mMidpoints.scale.y = 0.2;
-  mMidpoints.scale.z = 0.2;
+  mMidpoints.scale.x = 0.15;
+  mMidpoints.scale.y = 0.15;
+  mMidpoints.scale.z = 0.15;
   mMidpoints.type = visualization_msgs::Marker::LINE_STRIP;
   mMidpoints.id = id++;
   mMidpoints.action = visualization_msgs::Marker::DELETEALL;
