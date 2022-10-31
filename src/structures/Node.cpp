@@ -1,3 +1,13 @@
+/**
+ * @file Node.cpp
+ * @author Oriol Gorriz (origovi2000@gmail.com)
+ * @brief Contains the Node class member functions implementation
+ * @version 1.0
+ * @date 2022-10-31
+ * 
+ * @copyright Copyright (c) 2022 BCN eMotorsport
+ */
+
 #include "structures/Node.hpp"
 
 const uint32_t Node::SUPERTRIANGLE_BASEID;
@@ -43,7 +53,7 @@ const bool &Node::belongsToSuperTriangle() const {
   return belongsToSuperTriangle_;
 }
 
-void Node::updateLocal(const Eigen::Affine3d &tf) {
+void Node::updateLocal(const Eigen::Affine3d &tf) const {
   this->point_ = this->pointGlobal().transformed(tf);
 }
 

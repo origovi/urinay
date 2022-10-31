@@ -1,3 +1,13 @@
+/**
+ * @file Way.cpp
+ * @author Oriol Gorriz (origovi2000@gmail.com)
+ * @brief Contains the Way class member functions implementation
+ * @version 1.0
+ * @date 2022-10-31
+ * 
+ * @copyright Copyright (c) 2022 BCN eMotorsport
+ */
+
 #include "structures/Way.hpp"
 
 /* ----------------------------- Private Methods ---------------------------- */
@@ -142,12 +152,12 @@ Tracklimits Way::getTracklimits() const {
   for (const Edge &e : this->path_) {
     Vector pAntPAct(pAnt, e.midPointGlobal());
 
-    if (Vector::pointBehind(e.n0().pointGlobal(), e.midPointGlobal(), pAntPAct.rotClock())) {
-      left = &e.n1();
-      right = &e.n0();
+    if (Vector::pointBehind(e.n0.pointGlobal(), e.midPointGlobal(), pAntPAct.rotClock())) {
+      left = &e.n0;
+      right = &e.n1;
     } else {
-      left = &e.n0();
-      right = &e.n1();
+      left = &e.n1;
+      right = &e.n0;
     }
 
     if (*left != res.first.back())

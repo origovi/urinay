@@ -1,8 +1,23 @@
+/**
+ * @file Params.hpp
+ * @author Oriol Gorriz (origovi2000@gmail.com)
+ * @brief Contains the Params class specification
+ * @version 1.0
+ * @date 2022-10-31
+ * 
+ * @copyright Copyright (c) 2022 BCN eMotorsport
+ */
+
 #pragma once
 
 #include <ros/package.h>
 #include <ros/ros.h>
 
+/**
+ * @brief Represents all the parameters that the program needs divided into
+ * modules and structures.
+ * When constructed, it fills all parameters using ROS param.
+ */
 class Params {
  public:
   Params(ros::NodeHandle *const nh);
@@ -16,7 +31,8 @@ class Params {
     double max_triangle_edge_len, min_triangle_angle, max_dist_circum_midPoint;
     int max_search_tree_height, max_search_options;
     double search_radius, max_angle_diff, edge_len_diff_factor;
-    float max_next_heuristic, heur_dist_ponderation;
+    double max_next_heuristic;
+    float heur_dist_ponderation;
     float max_treeSearch_time;
     struct Way {
       int min_loop_size;

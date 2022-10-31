@@ -1,3 +1,13 @@
+/**
+ * @file main.cpp
+ * @author Oriol Gorriz (origovi2000@gmail.com)
+ * @brief Main file of Urinay, creates all modules, subcribers and publishers.
+ * @version 1.0
+ * @date 2022-10-31
+ * 
+ * @copyright Copyright (c) 2022 BCN eMotorsport
+ */
+
 #include <as_msgs/ConeArray.h>
 #include <as_msgs/PathLimits.h>
 #include <ros/package.h>

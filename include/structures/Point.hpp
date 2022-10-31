@@ -1,12 +1,11 @@
 /**
  * @file Point.hpp
- * @author Oriol Gorriz (oriol.gorriz@estudiantat.upc.edu)
- * @brief It contains the specification of the Point class.
+ * @author Oriol Gorriz (origovi2000@gmail.com)
+ * @brief Contains the Point class specification
  * @version 1.0
- * @date 2022-09-16
+ * @date 2022-10-31
  * 
  * @copyright Copyright (c) 2022 BCN eMotorsport
- * 
  */
 
 #pragma once
@@ -57,9 +56,8 @@ class Point {
   /**
    * @brief Performs the squared Euclidean distance between two Point(s).
    * 
-   * @param p1 
-   * @param p2 
-   * @return double 
+   * @param[in] p1 
+   * @param[in] p2 
    */
   static inline double distSq(const Point &p1, const Point &p2 = Point()) {
     return pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2);
@@ -68,9 +66,8 @@ class Point {
   /**
    * @brief Performs the Euclidean distance between two Point(s).
    * 
-   * @param p1 
-   * @param p2 
-   * @return double 
+   * @param[in] p1 
+   * @param[in] p2 
    */
   static inline double dist(const Point &p1, const Point &p2 = Point()) {
     return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
@@ -79,39 +76,32 @@ class Point {
   /**
    * @brief Prints a Point.
    * 
-   * @param os 
-   * @param p 
-   * @return std::ostream& 
+   * @param[in,out] os 
+   * @param[in] p 
    */
   friend std::ostream &operator<<(std::ostream &os, const Point &p);
 
   /**
    * @brief Returns the tranformed Point with an Eigen::Affine3d.
    * 
-   * @param tf 
-   * @return Point 
+   * @param[in] tf 
    */
   Point transformed(const Eigen::Affine3d &tf) const;
 
   /**
    * @brief Converts the point to a geometry_msgs::Point.
-   * 
-   * @return geometry_msgs::Point 
    */
   geometry_msgs::Point gmPoint() const;
 
   /**
    * @brief Returns the coordinate of the position specified by \a ind.
    * 
-   * @param ind 
-   * @return const double& 
+   * @param[in] ind 
    */
   const double &at(const size_t &ind) const;
 
   /**
    * @brief Returns 2.
-   * 
-   * @return size_t 
    */
   size_t size() const;
 };

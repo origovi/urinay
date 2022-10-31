@@ -1,3 +1,13 @@
+/**
+ * @file WayComputer.cpp
+ * @author Oriol Gorriz (origovi2000@gmail.com)
+ * @brief Contains the WayComputer class member functions implementation
+ * @version 1.0
+ * @date 2022-10-31
+ *
+ * @copyright Copyright (c) 2022 BCN eMotorsport
+ */
+
 #include "modules/WayComputer.hpp"
 
 /* ----------------------------- Private Methods ---------------------------- */
@@ -51,7 +61,7 @@ void WayComputer::filterMidpoints(EdgeSet &edges, const TriangleSet &triangulati
   }
 }
 
-float WayComputer::getHeuristic(const Point &actPos, const Point &nextPos, const Vector &dir) const {
+double WayComputer::getHeuristic(const Point &actPos, const Point &nextPos, const Vector &dir) const {
   double distHeur = Point::dist(actPos, nextPos);
 
   double angle = Vector(actPos, nextPos).angleWith(dir);
@@ -148,6 +158,57 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *ac
   std::partial_sort_copy(privilege_runner.begin(), privilege_runner.end(), nextEdges.begin(), nextEdges.end());
 }
 
+size_t WayComputer::treeSearch(std::vector<HeurInd> &nextEdges, const KDTree &midpointsKDT, const std::vector<Edge> &edges) const {
+  std::queue<Trace> cua;
+  for (const HeurInd &nextEdge : nextEdges) {
+    bool closesLoop = this->way_.closesLoopWith(edges[nextEdge.second]);
+    cua.emplace(nextEdge.second, nextEdge.first, edges[nextEdge.second].len, closesLoop);
+  }
+  Trace best = cua.back();
+
+  // Inner loop, it will realize the tree search and get the longest (& best)
+  // path.
+  // The loop will stop if the tree search is completed or a time limit has
+  // been exceeded.
+  ros::WallTime searchBeginTime = ros::WallTime::now();
+  while (not cua.empty()) {
+    if (ros::WallTime::now() - searchBeginTime > ros::WallDuration(params_.max_treeSearch_time)) {
+      ROS_WARN("[urinay] Time limit exceeded in tree search.");
+      break;
+    }
+    Trace t = cua.front();
+    cua.pop();
+
+    bool trace_at_max_height = false;
+
+    if (t.size() >= params_.max_search_tree_height)
+      trace_at_max_height = true;
+    else
+      this->findNextEdges(nextEdges, &t, midpointsKDT, edges);
+
+    if (trace_at_max_height or nextEdges.empty()) {
+      // Means that this trace is finished, should be considered as the "best"
+      // trace. The method of choosing the best trace is as follows:
+      // 1. The longest trace wins.
+      // 2. If the size is equal, then the trace with smallest accum heuristic wins.
+      // Note that here, no trace is added to the queue.
+      if (t.size() > best.size() or (t.size() == best.size() and t.sumHeur() < best.sumHeur())) {
+        best = t;
+      }
+    } else {
+      // Add new possible traces to the queue
+      for (const HeurInd &nextEdge : nextEdges) {
+        Point actPos = edges[t.edgeInd()].midPoint();
+        bool closesLoop = this->way_.closesLoopWith(edges[nextEdge.second], &actPos);
+        Trace aux = t;
+        aux.addEdge(nextEdge.second, nextEdge.first, edges[nextEdge.second].len, closesLoop);
+        cua.push(aux);
+      }
+    }
+  }
+  return best.first().edgeInd();
+}
+
 void WayComputer::computeWay(const std::vector<Edge> &edges) {
   // Get rid of all edges from closest to car (included) to last
   this->way_.trimByLocal();
@@ -169,55 +230,9 @@ void WayComputer::computeWay(const std::vector<Edge> &edges) {
   // Main outer loop, every iteration of this loop will involve adding one
   // midpoint to the path.
   while (not nextEdges.empty() and ros::ok()) {
-    std::queue<Trace> cua;
-    for (const HeurInd &nextEdge : nextEdges) {
-      bool closesLoop = this->way_.closesLoopWith(edges[nextEdge.second]);
-      cua.emplace(nextEdge.second, nextEdge.first, edges[nextEdge.second].len, closesLoop);
-    }
-    Trace best = cua.back();
+    size_t nextEdgeInd = this->treeSearch(nextEdges, midpointsKDT, edges);
 
-    // Inner loop, it will realize the tree search and get the longest (& best)
-    // path.
-    // The loop will stop if the tree search is completed or a time limit has
-    // been exceeded.
-    ros::WallTime searchBeginTime = ros::WallTime::now();
-    while (not cua.empty()) {
-      if (ros::WallTime::now() - searchBeginTime > ros::WallDuration(params_.max_treeSearch_time)) {
-        ROS_WARN("[urinay] Time limit exceeded in tree search.");
-        break;
-      }
-      Trace t = cua.front();
-      cua.pop();
-
-      bool trace_at_max_height = false;
-
-      if (t.size() >= params_.max_search_tree_height)
-        trace_at_max_height = true;
-      else
-        this->findNextEdges(nextEdges, &t, midpointsKDT, edges);
-
-      if (trace_at_max_height or nextEdges.empty()) {
-        // Means that this trace is finished, should be considered as the "best"
-        // trace. The method of choosing the best trace is as follows:
-        // 1. The longest trace wins.
-        // 2. If the size is equal, then the trace with smallest accum heuristic wins.
-        // Note that here, no trace is added to the queue.
-        if (t.size() > best.size() or (t.size() == best.size() and t.sumHeur() < best.sumHeur())) {
-          best = t;
-        }
-      } else {
-        // Add new possible traces to the queue
-        for (const HeurInd &nextEdge : nextEdges) {
-          Point actPos = edges[t.edgeInd()].midPoint();
-          bool closesLoop = this->way_.closesLoopWith(edges[nextEdge.second], &actPos);
-          Trace aux = t;
-          aux.addEdge(nextEdge.second, nextEdge.first, edges[nextEdge.second].len, closesLoop);
-          cua.push(aux);
-        }
-      }
-    }
-
-    const Edge &edgeToAppend = edges[best.first().edgeInd()];
+    const Edge &edgeToAppend = edges[nextEdgeInd];
 
     this->way_.addEdge(edgeToAppend);
 

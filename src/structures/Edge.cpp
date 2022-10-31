@@ -1,3 +1,13 @@
+/**
+ * @file Edge.cpp
+ * @author Oriol Gorriz (origovi2000@gmail.com)
+ * @brief Contains the Edge class member functions implementation
+ * @version 1.0
+ * @date 2022-10-31
+ * 
+ * @copyright Copyright (c) 2022 BCN eMotorsport
+ */
+
 #include "structures/Edge.hpp"
 
 /* ----------------------------- Private Methods ---------------------------- */
@@ -13,41 +23,34 @@ double Edge::computeLen(const Node &n0, const Node &n1) {
 /* ----------------------------- Public Methods ----------------------------- */
 
 Edge::Edge(const Node &n0, const Node &n1)
-    : n0_(n0), n1_(n1), hash_(computeHash(n0, n1)), len(computeLen(n0, n1)) {}
+    : n0(n0), n1(n1), hash_(computeHash(n0, n1)), len(computeLen(n0, n1)) {}
 
 bool Edge::operator==(const Edge &e) const {
-  return (e.n0() == this->n0() and e.n1() == this->n1()) or (e.n1() == this->n0() and e.n0() == this->n1());
+  return (e.n0 == this->n0 and e.n1 == this->n1) or (e.n1 == this->n0 and e.n0 == this->n1);
 }
 
 bool Edge::operator!=(const Edge &e) const {
   return not(*this == e);
 }
 
-std::ostream &operator<<(std::ostream &os, const Edge &e) {
-  os << "E(" << e.n0() << ", " << e.n1() << ")";
-  return os;
-}
-
-const Node &Edge::n0() const {
-  return this->n0_;
-}
-const Node &Edge::n1() const {
-  return this->n1_;
-}
-
-void Edge::updateLocal(const Eigen::Affine3d &tf) {
-  this->n0_.updateLocal(tf);
-  this->n1_.updateLocal(tf);
+void Edge::updateLocal(const Eigen::Affine3d &tf) const {
+  this->n0.updateLocal(tf);
+  this->n1.updateLocal(tf);
 }
 
 Point Edge::midPoint() const {
-  return (this->n0().point() + this->n1().point()) / 2.0;
+  return (this->n0.point() + this->n1.point()) / 2.0;
 }
 
 Point Edge::midPointGlobal() const {
-  return (this->n0().pointGlobal() + this->n1().pointGlobal()) / 2.0;
+  return (this->n0.pointGlobal() + this->n1.pointGlobal()) / 2.0;
 }
 
 Vector Edge::normal() const {
-  return Vector(this->n0().point(), this->n1().point()).rotClock();
+  return Vector(this->n0.point(), this->n1.point()).rotClock();
+}
+
+std::ostream &operator<<(std::ostream &os, const Edge &e) {
+  os << "E(" << e.n0 << ", " << e.n1 << ")";
+  return os;
 }

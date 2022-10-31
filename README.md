@@ -2,6 +2,9 @@
 
 Urinay is a path+tracklimits algorithm developed for computing the track midline and track limits of a Formula Student track. It uses Delaunay triangulation and a limited-heuristic-ponderated tree search taken only the cone positions and the car position. Made for [BCN eMotorsport Formula Student team](https://bcnemotorsport.upc.edu) by me.
 
+## Disclaimer
+If you use this algorithm for a Formula Student competition, the **only** thing I ask for is acknowledgment for the project. **Always** reference the team *BCN eMotorsport*.
+
 ## 1. Delaunay Triangulation
 The first step of this approach consists in obtaining the Delaunay triangulation (a set of triangles) using the detected cones as points in a 2D space.
 This set is computed using my implementation of the [Bowyer-Watson algorithm](https://en.wikipedia.org/wiki/Bowyer%E2%80%93Watson_algorithm). This is an iterative process that is computed in O(*n*log*n*), being *n* the number of points. The execution time of the triangulation with a high number of cones is approximately 1ms. *Fig. 1* shows the triangle set (red) and the midpoints of every edge (green).

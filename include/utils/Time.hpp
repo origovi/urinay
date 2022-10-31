@@ -1,12 +1,11 @@
 /**
  * @file Time.hpp
- * @author Oriol Gorriz (oriol.gorriz@estudiantat.upc.edu)
- * @brief It contains the specification of the Time class.
+ * @author Oriol Gorriz (origovi2000@gmail.com)
+ * @brief Contains the Time class specification
  * @version 1.0
- * @date 2022-09-07
+ * @date 2022-10-31
  * 
  * @copyright Copyright (c) 2022 BCN eMotorsport
- * 
  */
 
 #pragma once
@@ -27,6 +26,19 @@ class Time {
 
  public:
   Time() = delete;
+
+  /**
+   * @brief Creates a clock with name \a clockName.
+   * 
+   * @param[in] clockName 
+   */
   static void tick(const std::string &clockName);
+
+  /**
+   * @brief Stops the clock with name \a clockName, returns the duration
+   * and prompts the clock name and duration.
+   * 
+   * @param[in] clockName 
+   */
   static ros::WallDuration tock(const std::string &clockName);
 };

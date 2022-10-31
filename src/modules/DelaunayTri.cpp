@@ -1,3 +1,13 @@
+/**
+ * @file DelaunayTri.cpp
+ * @author Oriol Gorriz (origovi2000@gmail.com)
+ * @brief Contains the DelaunayTri class member functions implementation
+ * @version 1.0
+ * @date 2022-10-31
+ * 
+ * @copyright Copyright (c) 2022 BCN eMotorsport
+ */
+
 #include "modules/DelaunayTri.hpp"
 
 /* ----------------------------- Private Methods ---------------------------- */
@@ -30,13 +40,6 @@ Triangle DelaunayTri::superTriangle(const std::vector<Node> &nodes) {
 
 /* ----------------------------- Public Methods ----------------------------- */
 
-/**
- * @brief Implementation of the Bowyer-Watson algorithm to find the Delaunay
- * triangulation given a set of points. O(nlogn).
- * 
- * @param nodes 
- * @return TriangleSet 
- */
 TriangleSet DelaunayTri::compute(const std::vector<Node> &nodes) {
   if (nodes.size() < 3) return {};
 

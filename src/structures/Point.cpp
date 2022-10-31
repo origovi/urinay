@@ -1,3 +1,13 @@
+/**
+ * @file Point.cpp
+ * @author Oriol Gorriz (origovi2000@gmail.com)
+ * @brief Contains the Point class member functions implementation
+ * @version 1.0
+ * @date 2022-10-31
+ * 
+ * @copyright Copyright (c) 2022 BCN eMotorsport
+ */
+
 #include "structures/Point.hpp"
 
 /**

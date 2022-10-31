@@ -1,3 +1,13 @@
+/**
+ * @file Visualization.cpp
+ * @author Oriol Gorriz (origovi2000@gmail.com)
+ * @brief Contains the Visualization class member functions implementation
+ * @version 1.0
+ * @date 2022-10-31
+ * 
+ * @copyright Copyright (c) 2022 BCN eMotorsport
+ */
+
 #include "modules/Visualization.hpp"
 
 Visualization &Visualization::getInstance() {
@@ -126,12 +136,12 @@ void Visualization::visualize(const Way &way) const {
   ma.markers.push_back(mMidpoints);
   mMidpoints.action = visualization_msgs::Marker::ADD;
   mLeft = mMidpoints;
-  mLeft.color.r = 0.7;
-  mLeft.color.g = 0.7;
+  mLeft.color.g = 0.0;
+  mLeft.color.b = 0.7;
   mLeft.id = id++;
   mRight = mMidpoints;
-  mRight.color.g = 0.0;
-  mRight.color.b = 0.5;
+  mRight.color.r = 0.7;
+  mRight.color.g = 0.7;
 
   mMidpoints.color.a = 0.5;
   mMidpoints.id = id++;

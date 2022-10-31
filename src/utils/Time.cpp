@@ -1,3 +1,13 @@
+/**
+ * @file Time.cpp
+ * @author Oriol Gorriz (origovi2000@gmail.com)
+ * @brief Contains the Time class member functions implementation
+ * @version 1.0
+ * @date 2022-10-31
+ * 
+ * @copyright Copyright (c) 2022 BCN eMotorsport
+ */
+
 #include "utils/Time.hpp"
 
 std::map<std::string, ros::WallTime> Time::clocks_;
