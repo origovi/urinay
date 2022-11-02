@@ -71,7 +71,7 @@ We need to accumulate the midline so when the car moves we still know which was 
 This is why program has also the car's position in the track. Knowing where the car is at every moment gives the possibility to compute the midline from the car's position and then merge it with last iteration's midline, as seen in *Fig. 3*. This way, when a circular midline is detected, the program can communicate it to the path planning (and loop path optimizer) and stop.
 
 ## 6. Result
-The result can be seen in *Fig. 3*. Although the car's position is not displayed, it remains always far behind the last midpoint.
+The result can be seen in *Fig. 3*. Urinay always chooses the best-longest way, this is why sometimes it wants to take an incorrect path but amends it once the correct path is perceived.
 
 <p align="center">
   <img src="./documentation/assets/urinay_1.gif" alt="Urinay's path+tracklimits" width="500" /><br />
