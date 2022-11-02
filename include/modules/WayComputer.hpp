@@ -4,16 +4,17 @@
  * @brief Contains the WayComputer class specification
  * @version 1.0
  * @date 2022-10-31
- * 
+ *
  * @copyright Copyright (c) 2022 BCN eMotorsport
  */
 
 #pragma once
 
+#include <as_msgs/CarState.h>
 #include <as_msgs/Tracklimits.h>
 #include <eigen_conversions/eigen_msg.h>
-#include <nav_msgs/Odometry.h>
 #include <ros/ros.h>
+#include <tf/transform_datatypes.h>
 
 #include <fstream>
 #include <queue>
@@ -59,43 +60,43 @@ class WayComputer {
 
   /**
    * @brief Filters the TriangleSet and removes all unwanted triangles.
-   * 
-   * @param[in,out] triangulation 
+   *
+   * @param[in,out] triangulation
    */
   void filterTriangulation(TriangleSet &triangulation) const;
 
   /**
    * @brief Filters the Edges by their midpoints and removes all unwanted Edge(s).
-   * 
-   * @param[in,out] edges 
-   * @param[in] triangulation 
+   *
+   * @param[in,out] edges
+   * @param[in] triangulation
    */
   void filterMidpoints(EdgeSet &edges, const TriangleSet &triangulation) const;
 
   /**
    * @brief Computes and returns the heuristic based on angle and distance.
-   * 
-   * @param[in] actPos 
-   * @param[in] nextPos 
-   * @param[in] dir 
+   *
+   * @param[in] actPos
+   * @param[in] nextPos
+   * @param[in] dir
    */
   double getHeuristic(const Point &actPos, const Point &nextPos, const Vector &dir) const;
 
   /**
    * @brief Returns the average edge length of the Way and the Trace \a *trace
    * (if any).
-   * 
-   * @param[in] trace 
+   *
+   * @param[in] trace
    */
   inline double avgEdgeLen(const Trace *trace) const;
 
   /**
    * @brief Finds all possible next Edges according to all metrics and thresholds.
-   * 
-   * @param[out] nextEdges 
-   * @param[in] actTrace 
-   * @param[in] midpointsKDT 
-   * @param[in] edges 
+   *
+   * @param[out] nextEdges
+   * @param[in] actTrace
+   * @param[in] midpointsKDT
+   * @param[in] edges
    */
   void findNextEdges(std::vector<HeurInd> &nextEdges,
                      const Trace *actTrace,
@@ -105,40 +106,40 @@ class WayComputer {
   /**
    * @brief Performs a limited-height heuristic-ponderated tree search and
    * returns the index of the best possible next Edge.
-   * 
-   * @param[in] nextEdges 
-   * @param[in] midpointsKDT 
-   * @param[in] edges 
+   *
+   * @param[in] nextEdges
+   * @param[in] midpointsKDT
+   * @param[in] edges
    */
   size_t treeSearch(std::vector<HeurInd> &nextEdges, const KDTree &midpointsKDT, const std::vector<Edge> &edges) const;
-  
+
   /**
    * @brief Main function of the class, it takes all Edges and computes the best
    * possible centerline (Way).
-   * 
-   * @param[in] edges 
+   *
+   * @param[in] edges
    */
   void computeWay(const std::vector<Edge> &edges);
 
  public:
   /**
    * @brief Construct a new Way Computer object.
-   * 
-   * @param[in] params 
+   *
+   * @param[in] params
    */
   WayComputer(const Params::WayComputer &params);
 
   /**
-   * @brief Callback of the car's localization.
-   * 
-   * @param[in] data 
+   * @brief Callback of the car's state.
+   *
+   * @param[in] data
    */
-  void poseCallback(const nav_msgs::Odometry::ConstPtr &data);
+  void stateCallback(const as_msgs::CarState::ConstPtr &data);
 
   /**
    * @brief Takes the Delaunay triangle set and computes the Way.
-   * 
-   * @param[in,out] triangulation 
+   *
+   * @param[in,out] triangulation
    */
   void update(TriangleSet &triangulation);
 
@@ -149,8 +150,8 @@ class WayComputer {
 
   /**
    * @brief Writes the Way to the file path specified.
-   * 
-   * @param[in] file_path 
+   *
+   * @param[in] file_path
    */
   void writeWayToFile(const std::string &file_path) const;
 

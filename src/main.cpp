@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
 
   // Subscribers & Publishers
   ros::Subscriber subMap = nh->subscribe(params->main.input_topic, 1, callback_ccat);
-  ros::Subscriber subPose = nh->subscribe(params->main.input_pose_topic, 1, &WayComputer::poseCallback, wayComputer);
+  ros::Subscriber subPose = nh->subscribe(params->main.input_pose_topic, 1, &WayComputer::stateCallback, wayComputer);
 
   partialPub = nh->advertise<as_msgs::PathLimits>(params->main.output_partial_topic, 1);
   loopPub = nh->advertise<as_msgs::PathLimits>(params->main.output_full_topic, 1);

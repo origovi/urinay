@@ -35,8 +35,8 @@ void Visualization::visualize(const TriangleSet &triSet) const {
   mTriangulation.color.a = 1.0;
   mTriangulation.color.r = 1.0;
   mTriangulation.pose.orientation.w = 1.0;
-  mTriangulation.scale.x = 0.05;
-  mTriangulation.scale.y = 0.05;
+  mTriangulation.scale.x = 0.1;
+  mTriangulation.scale.y = 0.1;
   mTriangulation.scale.z = 0.01;
   mTriangulation.type = visualization_msgs::Marker::CYLINDER;
   mTriangulation.id = id++;
@@ -61,9 +61,6 @@ void Visualization::visualize(const TriangleSet &triSet) const {
   mMidpoint.color.b = 0.0;
   for (const Triangle &t : triSet) {
     // Triangle itself
-    mTriangulation.pose.position.x = 0.0;
-    mTriangulation.pose.position.y = 0.0;
-    mTriangulation.pose.position.z = 0.0;
     mTriangulation.points.clear();
     mTriangulation.points.reserve(triSet.size());
     mTriangulation.id = id++;

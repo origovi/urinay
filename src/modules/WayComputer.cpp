@@ -253,17 +253,15 @@ WayComputer::WayComputer(const Params::WayComputer &params) : params_(params) {
   Way::init(params.way);
 }
 
-void WayComputer::poseCallback(const nav_msgs::Odometry::ConstPtr &data) {
-  tf::poseMsgToEigen(data->pose.pose, this->localTf_);
+void WayComputer::stateCallback(const as_msgs::CarState::ConstPtr &data) {
+  geometry_msgs::Pose pose;
+  pose.position = data->odom.position;
+  tf::Quaternion qAux;
+  qAux.setRPY(0.0, 0.0, data->odom.heading);
+  tf::quaternionTFToMsg(qAux, pose.orientation);
+  tf::poseMsgToEigen(pose, this->localTf_);
 
-  // Invert y and z axis
-  static const Eigen::Matrix4d aux = (Eigen::Matrix4d() << 1.0, 0.0, 0.0, 0.0,
-                                      0.0, -1.0, 0.0, 0.0,
-                                      0.0, 0.0, -1.0, 0.0,
-                                      0.0, 0.0, 0.0, 1.0)
-                                         .finished();
   this->localTf_ = this->localTf_.inverse();
-  this->localTf_.matrix() = this->localTf_.matrix() * aux;
 
   this->localTfValid_ = true;
 }
