@@ -51,7 +51,7 @@ The search is defined as follows:
 7. Append all remaining points as sons of *p*.
 8. Find the best path. This will be the **longest path** (note that a path length will be at most the tree height). If two paths have equal length the one with smallest sum of heuristics will prevail.
 
-## 3.2. Loop closure
+### 3.2. Loop closure
 Obviously we want to detect and compute the whole track midline. Urinay does so by checking if the loop is closed every time a new midpoint is added to the midline. There are two problems here:
 1. How we detect a loop closure? If the following conditions are met:
     - The midline has a **length** greater than a threshold.
