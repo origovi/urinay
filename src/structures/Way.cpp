@@ -100,28 +100,31 @@ bool Way::closesLoopWith(const Edge &e, const Point *lastPosInTrace) const {
       abs(Vector(this->front().midPoint(), (++this->path_.begin())->midPoint()).angleWith(Vector(actPos, e.midPoint()))) <= params_.max_angle_diff_loop_closure;
 }
 
-void Way::restructureClosure() {
-  if (this->front() == this->back()) return;
+Way Way::restructureClosure() {
+  Way res = *this;
+  if (res.front() != res.back()) {
+    // Assume last Edge is the one that closes the loop
+    double distClosestWithLast = Point::distSq(res.front().midPoint(), res.back().midPoint());
+    auto closestWithLastIt = res.path_.begin();
 
-  // Assume last Edge is the one that closes the loop
-  double distClosestWithLast = Point::distSq(this->front().midPoint(), this->back().midPoint());
-  auto closestWithLastIt = this->path_.begin();
-
-  for (auto it = this->path_.begin(); it != std::prev(this->path_.end(), 5); it++) {  // The 5 is for safety
-    double distWithLast = Point::distSq(this->back().midPoint(), it->midPoint());
-    if (distWithLast <= distClosestWithLast) {
-      distClosestWithLast = distWithLast;
-      closestWithLastIt = it;
+    for (auto it = res.path_.begin(); it != std::prev(res.path_.end(), 5); it++) {  // The 5 is for safety
+      double distWithLast = Point::distSq(res.back().midPoint(), it->midPoint());
+      if (distWithLast <= distClosestWithLast) {
+        distClosestWithLast = distWithLast;
+        closestWithLastIt = it;
+      }
     }
+
+    // We remove all edges that would cause our "loop" not to be a loop
+    // (all that are before the edge that closes the loop)
+    res.path_.erase(res.path_.begin(), closestWithLastIt);
   }
+  // Note that here only the ids are equal, not necessarily the midpoint
+  // this is why the midpoint needs to be updated.
+  if (res.front() == res.back()) res.path_.pop_back();
+  res.path_.push_back(res.front());
 
-  // We remove all edges that would cause our "loop" not to be a loop
-  // (all that are before the edge that closes the loop)
-  this->path_.erase(this->path_.begin(), closestWithLastIt);
-
-  // Finally, we make sure that the first edge is the same as the last
-  // (to surely create a loop)
-  if (this->front() != this->back()) this->path_.push_front(this->back());
+  return res;
 }
 
 bool Way::containsEdge(const Edge &e) const {
@@ -144,7 +147,7 @@ Tracklimits Way::getTracklimits() const {
   Tracklimits res;
   res.first.reserve(this->size());
   res.second.reserve(this->size());
-  Point pAnt = this->empty() ? Point(0, 0) : this->front().midPointGlobal() - Point(1, 0);  // This only works in a global
+  Point pAnt = this->empty() ? Point(0, 0) : this->front().midPointGlobal() - Point(5, 0);  // This only works in a global, the 5 is arbitrary
 
   const Node *left;
   const Node *right;
@@ -152,6 +155,7 @@ Tracklimits Way::getTracklimits() const {
   for (const Edge &e : this->path_) {
     Vector pAntPAct(pAnt, e.midPointGlobal());
 
+    // Check the side of both Nodes of the Edge
     if (Vector::pointBehind(e.n0.pointGlobal(), e.midPointGlobal(), pAntPAct.rotClock())) {
       left = &e.n0;
       right = &e.n1;
@@ -160,6 +164,7 @@ Tracklimits Way::getTracklimits() const {
       right = &e.n0;
     }
 
+    // Only append those Nodes that have not been appended before
     if (*left != res.first.back())
       res.first.push_back(*left);
     if (*right != res.second.back())

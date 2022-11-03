@@ -44,6 +44,13 @@ class WayComputer {
   Way way_, lastWay_;
 
   /**
+   * @brief This Way object had to be created to solve the non-stop loop
+   * calculation. It is the Way that will be published every time (for both
+   * full & partial).
+   */
+  Way wayToPublish_;
+
+  /**
    * @brief Whether or not \a way_ has its loop closed.
    */
   bool isLoopClosed_ = false;

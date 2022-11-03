@@ -164,10 +164,10 @@ size_t WayComputer::treeSearch(std::vector<HeurInd> &nextEdges, const KDTree &mi
     bool closesLoop = this->way_.closesLoopWith(edges[nextEdge.second]);
     cua.emplace(nextEdge.second, nextEdge.first, edges[nextEdge.second].len, closesLoop);
   }
-  Trace best = cua.back();
+  // The provisional best is the Trace with smaller heuristic, i.e. the front one
+  Trace best = cua.front();
 
-  // Inner loop, it will realize the tree search and get the longest (& best)
-  // path.
+  // This loop will realize the tree search and get the longest (& best) path.
   // The loop will stop if the tree search is completed or a time limit has
   // been exceeded.
   ros::WallTime searchBeginTime = ros::WallTime::now();
@@ -206,6 +206,7 @@ size_t WayComputer::treeSearch(std::vector<HeurInd> &nextEdges, const KDTree &mi
       }
     }
   }
+  // The next point will be the first point of the best path
   return best.first().edgeInd();
 }
 
@@ -213,7 +214,7 @@ void WayComputer::computeWay(const std::vector<Edge> &edges) {
   // Get rid of all edges from closest to car (included) to last
   this->way_.trimByLocal();
 
-  // Build a k-d tree of all midpoints
+  // Build a k-d tree of all midpoints so is cheaper to find closest points
   std::vector<Point> midpoints(edges.size());
   std::transform(edges.begin(), edges.end(), midpoints.begin(),
                  [](const Edge &e) -> Point { return e.midPoint(); });
@@ -225,6 +226,7 @@ void WayComputer::computeWay(const std::vector<Edge> &edges) {
   // way. The search finishes when no element can be added to the way.
   std::vector<HeurInd> nextEdges;
 
+  // Get first set of possible Edges
   this->findNextEdges(nextEdges, nullptr, midpointsKDT, edges);
 
   // Main outer loop, every iteration of this loop will involve adding one
@@ -232,19 +234,20 @@ void WayComputer::computeWay(const std::vector<Edge> &edges) {
   while (not nextEdges.empty() and ros::ok()) {
     size_t nextEdgeInd = this->treeSearch(nextEdges, midpointsKDT, edges);
 
-    const Edge &edgeToAppend = edges[nextEdgeInd];
-
-    this->way_.addEdge(edgeToAppend);
+    // Append the new Edge
+    this->way_.addEdge(edges[nextEdgeInd]);
 
     // Check for loop closure
     if (this->way_.closesLoop()) {
-      this->way_.restructureClosure();
+      this->wayToPublish_ = this->way_.restructureClosure();
       this->isLoopClosed_ = true;
       return;
     }
 
+    // Get next set of possible edges
     this->findNextEdges(nextEdges, nullptr, midpointsKDT, edges);
   }
+  this->wayToPublish_ = this->way_;
 }
 
 /* ----------------------------- Public Methods ----------------------------- */
@@ -267,7 +270,10 @@ void WayComputer::stateCallback(const as_msgs::CarState::ConstPtr &data) {
 }
 
 void WayComputer::update(TriangleSet &triangulation) {
-  if (not this->localTfValid_) return;
+  if (not this->localTfValid_) {
+    ROS_WARN("[urinay] CarState not being received.");
+    return;
+  }
 
   // #0: Update last way (this will be used to calculate the raplan flag)
   this->lastWay_ = this->way_;
@@ -307,7 +313,7 @@ void WayComputer::update(TriangleSet &triangulation) {
   // #6: Visualize
   Visualization::getInstance().visualize(edgeSet);
   Visualization::getInstance().visualize(triangulation);
-  Visualization::getInstance().visualize(this->way_);
+  Visualization::getInstance().visualize(this->wayToPublish_);
 }
 
 const bool &WayComputer::isLoopClosed() const {
@@ -316,16 +322,16 @@ const bool &WayComputer::isLoopClosed() const {
 
 void WayComputer::writeWayToFile(const std::string &file_path) const {
   std::ofstream oStreamToWrite(file_path);
-  oStreamToWrite << this->way_;
+  oStreamToWrite << this->wayToPublish_;
   oStreamToWrite.close();
 }
 
 std::vector<Point> WayComputer::getPath() const {
-  return this->way_.getPath();
+  return this->wayToPublish_.getPath();
 }
 
 Tracklimits WayComputer::getTracklimits() const {
-  return this->way_.getTracklimits();
+  return this->wayToPublish_.getTracklimits();
 }
 
 as_msgs::PathLimits WayComputer::getPathLimits() const {
@@ -334,14 +340,14 @@ as_msgs::PathLimits WayComputer::getPathLimits() const {
   res.replan = this->way_ != this->lastWay_;
 
   // Fill path
-  std::vector<Point> path = this->way_.getPath();
+  std::vector<Point> path = this->wayToPublish_.getPath();
   res.path.reserve(path.size());
   for (const Point &p : path) {
     res.path.push_back(p.gmPoint());
   }
 
   // Fill Tracklimits
-  Tracklimits tracklimits = this->way_.getTracklimits();
+  Tracklimits tracklimits = this->wayToPublish_.getTracklimits();
   res.tracklimits.left.reserve(tracklimits.first.size());
   for (const Node &n : tracklimits.first) {
     res.tracklimits.left.push_back(n.cone());

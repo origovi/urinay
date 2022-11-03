@@ -115,11 +115,11 @@ class Way {
   bool closesLoopWith(const Edge &e, const Point *lastPosInTrace = nullptr) const;
 
   /**
-   * @brief Makes sure that first and last Edge(s) coincide.
-   * **Note** that first and last global coordinates may not coincide due to
-   * cone movement over the run.
+   * @brief Makes a copy making sure that:
+   * - Possible spare points are removed. (e.g. when the loop closes with the second point).
+   * - First and last Edge(s) coincide.
    */
-  void restructureClosure();
+  Way restructureClosure();
 
   /**
    * @brief Checks if the loop is closed. This means:

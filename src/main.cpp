@@ -69,8 +69,6 @@ void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
   }
 
   Time::tock("computation");  // End measuring time
-
-  std::cout << std::endl;
 }
 
 // Main
