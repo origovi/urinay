@@ -303,7 +303,7 @@ void WayComputer::update(TriangleSet &triangulation) {
 
   // #4: Update all local positions (way and edges) with car tf
   this->way_.updateLocal(this->localTf_);
-  for (Edge &e : edgeVec) {
+  for (const Edge &e : edgeVec) {
     e.updateLocal(this->localTf_);
   }
 

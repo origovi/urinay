@@ -45,7 +45,7 @@ class Node {
 
   /**
    * @brief Cone point in local coordinates.
-   * **Node** that it is mutable.
+   * **Note** that it is mutable.
    */
   mutable Point point_;
 
@@ -136,7 +136,7 @@ class Node {
   const Point &point() const;
 
   /**
-   * @brief Returns the point in gloabl coordinates.
+   * @brief Returns the point in global coordinates.
    */
   const Point &pointGlobal() const;
 

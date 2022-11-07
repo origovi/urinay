@@ -27,7 +27,7 @@ void Visualization::init(ros::NodeHandle *const nh, const Params::Visualization 
 void Visualization::visualize(const TriangleSet &triSet) const {
   if (not this->params_.publish_markers) return;
   visualization_msgs::MarkerArray ma;
-  ma.markers.reserve(2 * triSet.size() + 3 * triSet.size() + 1);
+  ma.markers.reserve(1 + 5 * triSet.size());
   visualization_msgs::Marker mTriangulation, mCircumCenter, mMidpoint;
   size_t id = 0;
   mTriangulation.header.stamp = ros::Time::now();
@@ -38,7 +38,6 @@ void Visualization::visualize(const TriangleSet &triSet) const {
   mTriangulation.scale.x = 0.1;
   mTriangulation.scale.y = 0.1;
   mTriangulation.scale.z = 0.01;
-  mTriangulation.type = visualization_msgs::Marker::CYLINDER;
   mTriangulation.id = id++;
   mTriangulation.action = visualization_msgs::Marker::DELETEALL;
   mTriangulation.type = visualization_msgs::Marker::LINE_STRIP;
@@ -46,13 +45,13 @@ void Visualization::visualize(const TriangleSet &triSet) const {
   mTriangulation.action = visualization_msgs::Marker::ADD;
 
   mCircumCenter = mTriangulation;
+  mCircumCenter.type = visualization_msgs::Marker::CYLINDER;
   mCircumCenter.scale.x = 0.1;
   mCircumCenter.scale.y = 0.1;
   mCircumCenter.scale.z = 0.05;
   mCircumCenter.color.r = 0.0;
   mCircumCenter.color.g = 0.0;
   mCircumCenter.color.b = 1.0;
-  mCircumCenter.type = visualization_msgs::Marker::CYLINDER;
 
   mMidpoint = mCircumCenter;
   mMidpoint.type = visualization_msgs::Marker::CUBE;
@@ -62,7 +61,7 @@ void Visualization::visualize(const TriangleSet &triSet) const {
   for (const Triangle &t : triSet) {
     // Triangle itself
     mTriangulation.points.clear();
-    mTriangulation.points.reserve(triSet.size());
+    mTriangulation.points.reserve(4);
     mTriangulation.id = id++;
     mTriangulation.points.push_back(t.nodes[0].pointGlobal().gmPoint());
     mTriangulation.points.push_back(t.nodes[1].pointGlobal().gmPoint());

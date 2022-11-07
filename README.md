@@ -1,6 +1,6 @@
 # Urinay
 
-Urinay is a path+tracklimits algorithm developed for computing the track midline and track limits of a Formula Student track. It uses Delaunay triangulation and a limited-heuristic-ponderated tree search taken only the cone positions and the car position. Made for [BCN eMotorsport Formula Student team](https://bcnemotorsport.upc.edu) by me.
+Urinay is a path+tracklimits algorithm developed for computing the track midline and track limits of a Formula Student track. It uses Delaunay triangulation and a limited-heuristic-ponderated tree search taken only the cone positions and the car position. Made for [BCN eMotorsport Formula Student team](https://bcnemotorsport.upc.edu) by me (Oriol Gorriz).
 
 ## Disclaimer
 If you use this algorithm for a Formula Student competition, the **only** thing I ask for is acknowledgment for the project. **Always** reference the team *BCN eMotorsport*.
