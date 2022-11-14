@@ -16,6 +16,8 @@
 /**
  * @brief Represents all the parameters that the program needs divided into
  * modules and structures.
+ * The class pretends to be a bridge between the .yaml and the program modules
+ * and structures.
  * When constructed, it fills all parameters using ROS param.
  */
 class Params {
@@ -38,6 +40,7 @@ class Params {
       int min_loop_size;
       double max_dist_loop_closure;
       double max_angle_diff_loop_closure;
+      int vital_num_midpoints;
     } way;
   } wayComputer;
   struct Visualization {

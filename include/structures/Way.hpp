@@ -47,6 +47,17 @@ class Way {
    */
   double avgEdgeLen_;
 
+  /**
+   * @brief Points at the Edge whose midpoint is closest to the car position.
+   * If empty, points to \a path_.cend().
+   */
+  std::list<Edge>::const_iterator closestToCarElem_;
+
+  /**
+   * @brief Updates the \a closestToCarElem_ attribute accordingly.
+   */
+  void updateClosestToCarElem();
+
  public:
   /**
    * @brief Method to initialize the Singleton.
@@ -157,6 +168,14 @@ class Way {
    * @param[in] way 
    */
   bool operator!=(const Way &way) const;
+
+  /**
+   * @brief Checks if the vital_num_midpoints (the n midpoints after car's position)
+   * are equal in both \a *this and \a way.
+   * 
+   * @param[in] way 
+   */
+  bool quinEhLobjetiuDeLaSevaDiresio(const Way &way) const;
 
   /**
    * @brief Returns the average Edge length.

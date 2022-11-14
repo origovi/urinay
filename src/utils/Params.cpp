@@ -40,6 +40,7 @@ Params::Params(ros::NodeHandle *const nh) {
   nh->param<int>(ns + "/min_loop_size", wayComputer.way.min_loop_size, 25);
   nh->param<double>(ns + "/max_dist_loop_closure", wayComputer.way.max_dist_loop_closure, 1.0);
   nh->param<double>(ns + "/max_angle_diff_loop_closure", wayComputer.way.max_angle_diff_loop_closure, 0.6);
+  nh->param<int>(ns + "/vital_num_midpoints", wayComputer.way.vital_num_midpoints, 5);
 
   // Visualization
   nh->param<bool>(ns + "/publish_markers", visualization.publish_markers, false);

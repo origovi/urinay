@@ -4,7 +4,7 @@
  * @brief Contains the Way class member functions implementation
  * @version 1.0
  * @date 2022-10-31
- * 
+ *
  * @copyright Copyright (c) 2022 BCN eMotorsport
  */
 
@@ -14,6 +14,23 @@
 
 Params::WayComputer::Way Way::params_;
 
+void Way::updateClosestToCarElem() {
+  auto smallestDWFIt = this->path_.cbegin();
+  if (!this->path_.empty()) {
+    double smallestDWF = Point::distSq(this->path_.front().midPoint());
+
+    // Find closest element to way's first in this
+    for (auto it = this->path_.cbegin(); it != this->path_.cend(); it++) {
+      double distSqWithFirst = Point::distSq(it->midPoint());
+      if (distSqWithFirst <= smallestDWF) {
+        smallestDWF = distSqWithFirst;
+        smallestDWFIt = it;
+      }
+    }
+  }
+  this->closestToCarElem_ = smallestDWFIt;
+}
+
 /* ----------------------------- Public Methods ----------------------------- */
 
 void Way::init(const Params::WayComputer::Way &params) {
@@ -21,7 +38,9 @@ void Way::init(const Params::WayComputer::Way &params) {
 }
 
 Way::Way()
-    : avgEdgeLen_(0.0) {}
+    : avgEdgeLen_(0.0) {
+  closestToCarElem_ = this->path_.cend();
+}
 
 bool Way::empty() const {
   return this->path_.empty();
@@ -48,38 +67,30 @@ void Way::updateLocal(const Eigen::Affine3d &tf) {
   for (Edge &e : this->path_) {
     e.updateLocal(tf);
   }
+  // Update closest
+  this->updateClosestToCarElem();
 }
 
 void Way::addEdge(const Edge &edge) {
   this->path_.push_back(edge);
+  if (this->path_.size() == 1) closestToCarElem_ = this->path_.cbegin();
   this->avgEdgeLen_ += (edge.len - this->avgEdgeLen_) / this->size();
 }
 
 void Way::trimByLocal() {
   if (this->size() < 2) return;
 
-  double distSqWithFirst = Point::distSq(this->path_.front().midPoint());
-  double smallestDWF = distSqWithFirst;
-  auto smallestDWFIt = this->path_.begin();
+  auto closestToCarElem = this->closestToCarElem_;
 
-  // Find closest element to way's first in this
-  for (auto it = this->path_.begin(); it != this->path_.end(); it++) {
-    distSqWithFirst = Point::distSq(it->midPoint());
-    if (distSqWithFirst <= smallestDWF) {
-      smallestDWF = distSqWithFirst;
-      smallestDWFIt = it;
-    }
-  }
-
-  if (smallestDWFIt != std::prev(this->path_.end())) {
+  if (closestToCarElem != std::prev(this->path_.cend())) {
     // Erase all elements after closest element (included)
-    this->path_.erase(++smallestDWFIt, this->path_.end());
+    this->path_.erase(++closestToCarElem, this->path_.cend());
   }
 
   // Recalculate the mean edge length attribute
   size_t t = 1;
   this->avgEdgeLen_ = 0.0;
-  for (auto it = this->path_.begin(); it != this->path_.end(); it++) {
+  for (auto it = this->path_.cbegin(); it != this->path_.cend(); it++) {
     this->avgEdgeLen_ += (it->len - this->avgEdgeLen_) / t;
     t++;
   }
@@ -177,6 +188,8 @@ Tracklimits Way::getTracklimits() const {
 
 Way &Way::operator=(const Way &way) {
   this->path_ = std::list<Edge>(way.path_);
+  this->avgEdgeLen_ = way.avgEdgeLen_;
+  this->updateClosestToCarElem();  // A copy of the attribute would be unsafe
   return *this;
 }
 
@@ -196,6 +209,39 @@ bool Way::operator==(const Way &way) const {
 
 bool Way::operator!=(const Way &way) const {
   return not(*this == way);
+}
+
+bool Way::quinEhLobjetiuDeLaSevaDiresio(const Way &way) const {
+  // Replan every time the emptiness changes
+  if (this->empty() != way.empty()) return true;
+  // Find the common starting point (replan if not found)
+  auto wayIt = way.closestToCarElem_;
+  auto thisIt = this->closestToCarElem_;
+
+  while (wayIt != way.path_.cend()) {
+    if (*wayIt == *thisIt) {
+      // Common starting point found!
+      break;
+    }
+    wayIt++;
+  }
+
+  // Case no starting point has been found
+  if (*wayIt != *thisIt) return true;
+
+  // Compare one by one the vital_num_midpoints
+  int midpoint_num = 0;
+  while (wayIt != way.path_.cend() and thisIt != this->path_.cend()) {
+    if (midpoint_num >= this->params_.vital_num_midpoints) return false;
+    if (*wayIt != *thisIt) return true;
+    midpoint_num++;
+    wayIt++;
+    thisIt++;
+  }
+
+  // Case where we reach the end of one of the two Way(s), we should see if
+  // one is longer than the other (within these vitual_num_midpoints).
+  return (wayIt == way.path_.cend()) != (thisIt == this->path_.cend());
 }
 
 const double &Way::getAvgEdgeLen() const {

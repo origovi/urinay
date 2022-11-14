@@ -10,8 +10,6 @@ marker_topics:
   triangulation:                "/AS/P/urinay/markers/triangulation"
   midpoints:                    "/AS/P/urinay/markers/midpoints"
   way:                          "/AS/P/urinay/markers/way"
-  markers_full_topic:           "/AS/P/urinay/markers/full"
-  markers_partial_topic:        "/AS/P/urinay/markers/partial"
 
 ## Params
 
@@ -35,3 +33,6 @@ shutdown_on_loop_closure:       false   # bool   [-]   whether or not it will sh
 min_loop_size:                  25      # int    [num] minimum number of midpoints required to be able to make a loop closure.
 max_dist_loop_closure:          1.0     # double [m]   maximum distance between first and last midpoint to consider it a loop.
 max_angle_diff_loop_closure:    0.65    # double [rad] maximum angle difference between first and last midpoints. Expected to be same as max_angle_diff but it may come in hand having two separated.
+
+# Replan flag
+vital_num_midpoints:            10      # int    [num] number of midpoints that are considered "vital" from the car's position on. This is taken into account when computing the (outer) replan flag.

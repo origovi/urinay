@@ -337,6 +337,8 @@ Tracklimits WayComputer::getTracklimits() const {
 as_msgs::PathLimits WayComputer::getPathLimits() const {
   as_msgs::PathLimits res;
   res.stamp = ros::Time::now();
+
+  // res.replan indicates if the Way is different from last iteration's
   res.replan = this->way_ != this->lastWay_;
 
   // Fill path
@@ -348,6 +350,7 @@ as_msgs::PathLimits WayComputer::getPathLimits() const {
 
   // Fill Tracklimits
   Tracklimits tracklimits = this->wayToPublish_.getTracklimits();
+  res.tracklimits.stamp = res.stamp;
   res.tracklimits.left.reserve(tracklimits.first.size());
   for (const Node &n : tracklimits.first) {
     res.tracklimits.left.push_back(n.cone());
@@ -355,7 +358,9 @@ as_msgs::PathLimits WayComputer::getPathLimits() const {
   for (const Node &n : tracklimits.second) {
     res.tracklimits.right.push_back(n.cone());
   }
-  res.tracklimits.stamp = res.stamp;
-  res.tracklimits.replan = res.replan;
+
+  // res.tracklimits.replan indicates if the n midpoints in front of the car
+  // have varied from last iteration
+  res.tracklimits.replan = this->way_.quinEhLobjetiuDeLaSevaDiresio(this->lastWay_);
   return res;
 }

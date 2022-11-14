@@ -26,6 +26,8 @@ void Visualization::init(ros::NodeHandle *const nh, const Params::Visualization 
 
 void Visualization::visualize(const TriangleSet &triSet) const {
   if (not this->params_.publish_markers) return;
+  if (trianglesPub.getNumSubscribers() <= 0) return;
+
   visualization_msgs::MarkerArray ma;
   ma.markers.reserve(1 + 5 * triSet.size());
   visualization_msgs::Marker mTriangulation, mCircumCenter, mMidpoint;
@@ -86,6 +88,8 @@ void Visualization::visualize(const TriangleSet &triSet) const {
 
 void Visualization::visualize(const EdgeSet &edgeSet) const {
   if (not this->params_.publish_markers) return;
+  if (midpointsPub.getNumSubscribers() <= 0) return;
+
   visualization_msgs::MarkerArray ma;
   ma.markers.reserve(edgeSet.size() + 1);
   visualization_msgs::Marker mMidpoint;
@@ -114,6 +118,8 @@ void Visualization::visualize(const EdgeSet &edgeSet) const {
 
 void Visualization::visualize(const Way &way) const {
   if (not this->params_.publish_markers) return;
+  if (wayPub.getNumSubscribers() <= 0) return;
+
   visualization_msgs::MarkerArray ma;
   ma.markers.reserve(3 * way.size() + 1);
   visualization_msgs::Marker mMidpoints, mLeft, mRight;
