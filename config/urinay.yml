@@ -35,4 +35,4 @@ max_dist_loop_closure:          1.0     # double [m]   maximum distance between 
 max_angle_diff_loop_closure:    0.65    # double [rad] maximum angle difference between first and last midpoints. Expected to be same as max_angle_diff but it may come in hand having two separated.
 
 # Replan flag
-vital_num_midpoints:            10      # int    [num] number of midpoints that are considered "vital" from the car's position on. This is taken into account when computing the (outer) replan flag.
+vital_num_midpoints:            10      # int    [num] number of midpoints that are considered "vital" from the car's position on. This is taken into account when computing the (inner) replan flag.
