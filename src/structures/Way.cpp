@@ -239,9 +239,11 @@ bool Way::quinEhLobjetiuDeLaSevaDiresio(const Way &way) const {
     thisIt++;
   }
 
-  // Case where we reach the end of one of the two Way(s), we should see if
-  // one is longer than the other (within these vitual_num_midpoints).
-  return (wayIt == way.path_.cend()) != (thisIt == this->path_.cend());
+  // Case where we reach the end of one of the two Way(s), we could check if
+  // one is longer than the other (within these vital_num_midpoints) and return
+  // accordingly, but this case is better covered by the planner itself (it will
+  // replan when it runs out of midpoints).
+  return false;
 }
 
 const double &Way::getAvgEdgeLen() const {
