@@ -138,7 +138,7 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *ac
       (nextPossibleEdge.len < (1 - this->params_.edge_len_diff_factor) * this->avgEdgeLen(actTrace) or nextPossibleEdge.len > (1 + this->params_.edge_len_diff_factor) * this->avgEdgeLen(actTrace)) or
 
       // [If not allow_intersection, only before closing the loop] Remove any Edge which appended would create an intersection
-      (not this->params_.allow_intersection and (not actTrace or not actTrace->isLoopClosed()) and this->way_.intersectsWith(nextPossibleEdge))
+      (not this->params_.allow_intersection and (not actTrace or not actTrace->isLoopClosed()) and not this->way_.closesLoopWith(nextPossibleEdge) and this->way_.intersectsWith(nextPossibleEdge))
     );
 
     if (removeConditions)
