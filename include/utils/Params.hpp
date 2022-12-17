@@ -24,10 +24,11 @@ class Params {
  public:
   Params(ros::NodeHandle *const nh);
   struct Main {
-    std::string input_topic, input_pose_topic, output_full_topic, output_partial_topic;
+    std::string input_cones_topic, input_pose_topic, output_full_topic, output_partial_topic;
     std::string markers_full_topic, markers_partial_topic;
     std::string package_path;
     bool shutdown_on_loop_closure;
+    float min_cone_confidence;
   } main;
   struct WayComputer {
     double max_triangle_edge_len, min_triangle_angle, max_dist_circum_midPoint;
@@ -35,6 +36,7 @@ class Params {
     double search_radius, max_angle_diff, edge_len_diff_factor;
     double max_next_heuristic;
     float heur_dist_ponderation;
+    bool allow_intersection;
     float max_treeSearch_time;
     struct Way {
       int min_loop_size;

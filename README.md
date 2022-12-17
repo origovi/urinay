@@ -1,9 +1,15 @@
 # Urinay
 
-Urinay is a path+tracklimits algorithm developed for computing the track midline and track limits of a Formula Student track. It uses Delaunay triangulation and a limited-heuristic-ponderated tree search taken only the cone positions and the car position. Made for [BCN eMotorsport Formula Student team](https://bcnemotorsport.upc.edu) by me (Oriol Gorriz).
+Urinay is a color-blind path+tracklimits algorithm developed for computing the centerline and track limits of the Formula Student driverless autocross track without the need of sensing the cones' color. It uses Delaunay triangulation and a limited-heuristic-ponderated tree search and only takes the cone positions and the car pose. Made for [BCN eMotorsport Formula Student team](https://bcnemotorsport.upc.edu) by me (Oriol Gorriz) entirely in C++ and to work with ROS.
 
 ## Disclaimer
-If you use this algorithm for a Formula Student competition, the **only** thing I ask for is acknowledgment for the project. **Always** reference the team *BCN eMotorsport*.
+If you use this algorithm for a Formula Student competition, the **only** thing I ask for is acknowledgment for the project. **Always** reference the team ***BCN eMotorsport***.
+
+## Dependencies
+- [Ubuntu](https://ubuntu.com) (tested on 20.04)
+- [ROS](http://wiki.ros.org/ROS/Installation) (tested on Noetic)
+- [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
+- *as_msgs*: The team's proprietary communication messages package. Change it for yours.
 
 ## 1. Delaunay Triangulation
 The first step of this approach consists in obtaining the Delaunay triangulation (a set of triangles) using the detected cones as points in a 2D space.
@@ -46,6 +52,7 @@ The search is defined as follows:
     - Any midpoint being in the same side of last edge, make sure the path **crosses** every midpoint edge (avoid bouncing on track limits).
     - [Not applied to first midpoint] Any midpoint **already contained** in the path (avoid creating incorrect loops).
     - Any midpoint whose edge is too big or too small compared to the midline average edge length (avoid incorrect midline).
+    - Any midpoint that when appended to the path creates an intersection (on the path itself).
 5. A **heuristic** value for each of the remaining midpoints will be calculated.
 6. **Discard** all midpoints whose heuristic exceeds a threshold.
 7. Append all remaining points as sons of *p*.

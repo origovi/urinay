@@ -1,11 +1,11 @@
 # I/O Topics
-input_topic:                    "/AS/P/ccat/cones"
+input_cones_topic:              "/AS/P/ccat/cones"
 input_pose_topic:               "/AS/C/state"
 output_full_topic:              "/AS/P/pathlimits/full"
 output_partial_topic:           "/AS/P/pathlimits/partial"
 
 # Markers
-publish_markers:                true    # bool   [-]   whether or not to publish the markers
+publish_markers:                true    # bool   [-]   whether or not to publish the markers.
 marker_topics:
   triangulation:                "/AS/P/urinay/markers/triangulation"
   midpoints:                    "/AS/P/urinay/markers/midpoints"
@@ -14,9 +14,10 @@ marker_topics:
 ## Params
 
 # Filtering
-max_triangle_edge_len:          7.0     # double [m]   all triangles will have all edge lenghts below max_triangle_edge_len
-min_triangle_angle:             0.35    # double [rad] all triangles with any angle below this, will be removed
-max_dist_circum_midPoint:       1.5     # double [m]
+min_cone_confidence:            0.0     # float  [-]   minimum required confidence to take a cone into account.
+max_triangle_edge_len:          7.0     # double [m]   all triangles will have all edge lenghts below max_triangle_edge_len.
+min_triangle_angle:             0.35    # double [rad] all triangles with any angle below this, will be removed.
+max_dist_circum_midPoint:       2.0     # double [m]   only take into account the midpoints that have a triangle circumcenter closer than max_dist_circum_midPoint. 
 
 # Search
 max_search_tree_height:         7       # int    [num] max length of a path in the tree search, this is the horizon length of the program. The greater the better.
@@ -26,6 +27,7 @@ edge_len_diff_factor:           0.7     # double [-]   if the path has a mean ed
 max_search_options:             2       # int    [num] number of maximum sons of every node in the tree during the search, 2 is stable, 3 risky
 max_next_heuristic:             2.3     # double [-]
 heur_dist_ponderation:          0.4     # float  [-]   minumum 0.0, maximum 1.0. Assume heur_angle_ponderation = 1.0-this
+allow_intersection:             false   # bool   [-]   whether or not to allow path intersection (a loop in the path)
 max_treeSearch_time:            0.05    # float  [s]   maximum time that a tree search can take, otherwise, the search will be stopped and the best midpoint until then will be chosen (and appended to the path), we can assume that the overall max time will be this*num_of_midpoints_in_path_from_car_to_end
 
 # Loop Closure

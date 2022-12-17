@@ -22,8 +22,8 @@
 #include "utils/Time.hpp"
 
 // Publishers are initialized here
-ros::Publisher partialPub;
-ros::Publisher loopPub;
+ros::Publisher pubPartial;
+ros::Publisher pubFull;
 
 WayComputer *wayComputer;
 Params *params;
@@ -41,7 +41,8 @@ void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
   std::vector<Node> nodes;
   nodes.reserve(data->cones.size());
   for (const as_msgs::Cone &c : data->cones) {
-    nodes.emplace_back(c);
+    if (c.confidence >= params->main.min_cone_confidence) 
+      nodes.emplace_back(c);
   }
 
   // Delaunay triangulation
@@ -52,7 +53,7 @@ void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
 
   // Publish loop and write tracklimits to a file
   if (wayComputer->isLoopClosed()) {
-    loopPub.publish(wayComputer->getPathLimits());
+    pubFull.publish(wayComputer->getPathLimits());
     ROS_INFO("[urinay] Tanco loop");
     std::string loopDir = params->main.package_path + "/loops";
     mkdir(loopDir.c_str(), 0777);
@@ -65,7 +66,7 @@ void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
   }
   // Publish partial
   else {
-    partialPub.publish(wayComputer->getPathLimits());
+    pubPartial.publish(wayComputer->getPathLimits());
   }
 
   Time::tock("computation");  // End measuring time
@@ -82,11 +83,11 @@ int main(int argc, char **argv) {
   Visualization::getInstance().init(nh, params->visualization);
 
   // Subscribers & Publishers
-  ros::Subscriber subMap = nh->subscribe(params->main.input_topic, 1, callback_ccat);
+  ros::Subscriber subCones = nh->subscribe(params->main.input_cones_topic, 1, callback_ccat);
   ros::Subscriber subPose = nh->subscribe(params->main.input_pose_topic, 1, &WayComputer::stateCallback, wayComputer);
 
-  partialPub = nh->advertise<as_msgs::PathLimits>(params->main.output_partial_topic, 1);
-  loopPub = nh->advertise<as_msgs::PathLimits>(params->main.output_full_topic, 1);
+  pubPartial = nh->advertise<as_msgs::PathLimits>(params->main.output_partial_topic, 1);
+  pubFull = nh->advertise<as_msgs::PathLimits>(params->main.output_full_topic, 1);
 
   ros::spin();
 }

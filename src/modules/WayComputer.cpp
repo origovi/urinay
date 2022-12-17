@@ -120,6 +120,7 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *ac
   auto it = nextPossibleEdges.begin();
   while (it != nextPossibleEdges.end()) {
     const Edge &nextPossibleEdge = edges[*it];
+    // The currently-iterated Edge will be removed if any of the below conditions is true
     bool removeConditions = actEdge and (
       // Remove itself from being the next one
       nextPossibleEdge == *actEdge or
@@ -134,7 +135,10 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *ac
       ((this->way_.size() >= 2 or actTrace) and Vector::pointBehind(actEdge->midPoint(), lastPos, actEdge->normal()) == Vector::pointBehind(actEdge->midPoint(), nextPossibleEdge.midPoint(), actEdge->normal())) or
 
       // Remove any edge whose length is too big or too small compared to the average edge length of the way
-      (nextPossibleEdge.len < (1 - this->params_.edge_len_diff_factor) * this->avgEdgeLen(actTrace) or nextPossibleEdge.len > (1 + this->params_.edge_len_diff_factor) * this->avgEdgeLen(actTrace))
+      (nextPossibleEdge.len < (1 - this->params_.edge_len_diff_factor) * this->avgEdgeLen(actTrace) or nextPossibleEdge.len > (1 + this->params_.edge_len_diff_factor) * this->avgEdgeLen(actTrace)) or
+
+      // [If not allow_intersection, only before closing the loop] Remove any Edge which appended would create an intersection
+      (not this->params_.allow_intersection and (not actTrace or not actTrace->isLoopClosed()) and this->way_.intersectsWith(nextPossibleEdge))
     );
 
     if (removeConditions)

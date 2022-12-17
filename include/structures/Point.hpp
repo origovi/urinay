@@ -74,6 +74,18 @@ class Point {
   }
 
   /**
+   * @brief Checks if the orientation of ordered triplet (A, B, C) is
+   * counterclockwise.
+   * 
+   * @param[in] A 
+   * @param[in] B 
+   * @param[in] C 
+   */
+  static inline bool ccw(const Point &A, const Point &B, const Point &C) {
+    return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
+  }
+
+  /**
    * @brief Prints a Point.
    * 
    * @param[in,out] os 

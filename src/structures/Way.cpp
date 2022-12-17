@@ -31,6 +31,10 @@ void Way::updateClosestToCarElem() {
   this->closestToCarElem_ = smallestDWFIt;
 }
 
+bool Way::segmentsIntersect(const Point &A, const Point &B, const Point &C, const Point &D) {
+  return Point::ccw(A, C, D) != Point::ccw(B, C, D) and Point::ccw(A, B, C) != Point::ccw(A, B, D);
+}
+
 /* ----------------------------- Public Methods ----------------------------- */
 
 void Way::init(const Params::WayComputer::Way &params) {
@@ -136,6 +140,23 @@ Way Way::restructureClosure() {
   res.path_.push_back(res.front());
 
   return res;
+}
+
+bool Way::intersectsWith(const Edge &e) const {
+  if (this->size() <= 2) return false;
+  Point s1p1, s1p2;
+  const Point s2p1 = this->back().midPoint();
+  const Point s2p2 = e.midPoint();
+  auto it1 = std::next(this->path_.crbegin());
+  auto it2 = std::next(it1);
+  while (it2 != this->path_.crend()) {
+    s1p1 = it1->midPoint();
+    s1p2 = it2->midPoint();
+    if (this->segmentsIntersect(s1p1, s1p2, s2p1, s2p2)) return true;
+    it1++;
+    it2++;
+  }
+  return false;
 }
 
 bool Way::containsEdge(const Edge &e) const {

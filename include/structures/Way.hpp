@@ -58,6 +58,16 @@ class Way {
    */
   void updateClosestToCarElem();
 
+  /**
+   * @brief Checks if line segments defined by \a AB and \a CD intersect.
+   * 
+   * @param[in] A 
+   * @param[in] B 
+   * @param[in] C 
+   * @param[in] D 
+   */
+  static bool segmentsIntersect(const Point &A, const Point &B, const Point &C, const Point &D);
+
  public:
   /**
    * @brief Method to initialize the Singleton.
@@ -138,6 +148,14 @@ class Way {
    * - Distance between first and last midpoints exceeds a threshold
    */
   bool closesLoop() const;
+
+  /**
+   * @brief Checks if Edge \a e creates an intersection (a loop) on the path.
+   * O(n), n=this->size().
+   * 
+   * @param[in] e 
+   */
+  bool intersectsWith(const Edge &e) const;
 
   /**
    * @brief Checks if the Way contains a specific Edge \a e.

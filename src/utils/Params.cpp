@@ -18,11 +18,12 @@ Params::Params(ros::NodeHandle *const nh) {
   std::string ns = ros::this_node::getName();
   // Main
   main.package_path = ros::package::getPath("urinay");
-  nh->param<std::string>(ns + "/input_topic", main.input_topic, "/AS/P/ccat/cones");
+  nh->param<std::string>(ns + "/input_cones_topic", main.input_cones_topic, "/AS/P/ccat/cones");
   nh->param<std::string>(ns + "/input_pose_topic", main.input_pose_topic, "/AS/C/state");
   nh->param<std::string>(ns + "/output_full_topic", main.output_full_topic, "/AS/P/tracklimits/full");
   nh->param<std::string>(ns + "/output_partial_topic", main.output_partial_topic, "/AS/P/tracklimits/partial");
   nh->param<bool>(ns + "/shutdown_on_loop_closure", main.shutdown_on_loop_closure, true);
+  nh->param<float>(ns + "/min_cone_confidence", main.min_cone_confidence, 0.0);
 
   // WayComputer
   nh->param<double>(ns + "/max_triangle_edge_len", wayComputer.max_triangle_edge_len, 9.0);
@@ -35,6 +36,7 @@ Params::Params(ros::NodeHandle *const nh) {
   nh->param<int>(ns + "/max_search_options", wayComputer.max_search_options, 2);
   nh->param<double>(ns + "/max_next_heuristic", wayComputer.max_next_heuristic, 3.0);
   nh->param<float>(ns + "/heur_dist_ponderation", wayComputer.heur_dist_ponderation, 0.6);
+  nh->param<bool>(ns + "/allow_intersection", wayComputer.allow_intersection, false);
   nh->param<float>(ns + "/max_treeSearch_time", wayComputer.max_treeSearch_time, 0.05);
   // Way
   nh->param<int>(ns + "/min_loop_size", wayComputer.way.min_loop_size, 25);
