@@ -162,6 +162,17 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *ac
   std::partial_sort_copy(privilege_runner.begin(), privilege_runner.end(), nextEdges.begin(), nextEdges.end());
 }
 
+Trace WayComputer::computeBestTraceWithFinishedT(const Trace &best, const Trace &t) const {
+  // The method of choosing the best trace is as follows:
+  // 1. The longest trace wins.
+  // 2. If the size is equal, then the trace with smallest accum heuristic wins.
+  // Note that here, no trace is added to the queue.
+  if (t.size() > best.size() or (t.size() == best.size() and t.sumHeur() < best.sumHeur())) {
+    return t;
+  }
+  else return best;
+}
+
 size_t WayComputer::treeSearch(std::vector<HeurInd> &nextEdges, const KDTree &midpointsKDT, const std::vector<Edge> &edges) const {
   std::queue<Trace> cua;
   for (const HeurInd &nextEdge : nextEdges) {
@@ -192,13 +203,8 @@ size_t WayComputer::treeSearch(std::vector<HeurInd> &nextEdges, const KDTree &mi
 
     if (trace_at_max_height or nextEdges.empty()) {
       // Means that this trace is finished, should be considered as the "best"
-      // trace. The method of choosing the best trace is as follows:
-      // 1. The longest trace wins.
-      // 2. If the size is equal, then the trace with smallest accum heuristic wins.
-      // Note that here, no trace is added to the queue.
-      if (t.size() > best.size() or (t.size() == best.size() and t.sumHeur() < best.sumHeur())) {
-        best = t;
-      }
+      // trace.
+      best = this->computeBestTraceWithFinishedT(best, t);
     } else {
       // Add new possible traces to the queue
       for (const HeurInd &nextEdge : nextEdges) {
@@ -210,7 +216,7 @@ size_t WayComputer::treeSearch(std::vector<HeurInd> &nextEdges, const KDTree &mi
       }
     }
   }
-  // The next point will be the first point of the best path
+  // The next point will be the FIRST point of the best path
   return best.first().edgeInd();
 }
 

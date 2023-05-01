@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <list>
 #include <unordered_set>
 
 #include "structures/Edge.hpp"

@@ -11,6 +11,7 @@
 #pragma once
 
 #include "structures/Node.hpp"
+#include "utils/constants.hpp"
 
 /**
  * @brief Represents a triangle edge and has all information related to it.
@@ -20,7 +21,7 @@ class Edge {
   /**
    * @brief Edge's unique hash. The hash is calculated using the Node(s)' ids.
    */
-  const size_t hash_;
+  const uint64_t hash_;
 
   /**
    * @brief Returns the hash that would have an Edge having \a n0 and \a n1
@@ -29,7 +30,7 @@ class Edge {
    * @param[in] n0 
    * @param[in] n1 
    */
-  static size_t computeHash(const Node &n0, const Node &n1);
+  static uint64_t computeHash(const Node &n0, const Node &n1);
   
   /**
    * @brief Returns the length that would have an Edge defined by \a n0
@@ -108,7 +109,7 @@ class Edge {
 
 template <>
 struct std::hash<Edge> {
-  size_t operator()(const Edge &e) const {
+  uint64_t operator()(const Edge &e) const {
     return e.hash_;
   }
 };

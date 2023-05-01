@@ -17,7 +17,7 @@ marker_topics:
 min_cone_confidence:            0.0     # float  [-]   minimum required confidence to take a cone into account.
 max_triangle_edge_len:          7.0     # double [m]   all triangles will have all edge lenghts below max_triangle_edge_len.
 min_triangle_angle:             0.35    # double [rad] all triangles with any angle below this, will be removed.
-max_dist_circum_midPoint:       2.0     # double [m]   only take into account the midpoints that have a triangle circumcenter closer than max_dist_circum_midPoint. 
+max_dist_circum_midPoint:       3.0     # double [m]   only take into account the midpoints that have a triangle circumcenter closer than max_dist_circum_midPoint. 
 
 # Search
 max_search_tree_height:         7       # int    [num] max length of a path in the tree search, this is the horizon length of the program. The greater the better.

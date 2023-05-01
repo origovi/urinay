@@ -4,7 +4,7 @@
  * @brief Contains the Triangle class member functions implementation
  * @version 1.0
  * @date 2022-10-31
- * 
+ *
  * @copyright Copyright (c) 2022 BCN eMotorsport
  */
 
@@ -12,10 +12,12 @@
 
 /* ----------------------------- Private Methods ---------------------------- */
 
-size_t Triangle::computeHash(const Node &n0, const Node &n1, const Node &n2) {
+uint64_t Triangle::computeHash(const Node &n0, const Node &n1, const Node &n2) {
+  // Sort here is needed; two triangles with same nodes (but in different order)
+  // must have the same hash.
   std::vector<size_t> ids = {n0.id, n1.id, n2.id};
   std::sort(ids.begin(), ids.end(), std::greater<size_t>());
-  return ids[0] * 1e12 + ids[1] * 1e6 + ids[2];
+  return (ids[0] << (2 * HASH_SHIFT_NUM)) + (ids[1] << HASH_SHIFT_NUM) + ids[2];
 }
 
 /* ----------------------------- Public Methods ----------------------------- */
@@ -27,11 +29,7 @@ Triangle::Triangle(const Edge &e, const Node &n)
     : nodes{e.n0, e.n1, n}, circumCircle_(e.n0, e.n1, n), edges{Edge(e.n0, e.n1), Edge(e.n1, n), Edge(e.n0, n)}, hash_(computeHash(e.n0, e.n1, n)) {}
 
 bool Triangle::operator==(const Triangle &t) const {
-  std::vector<uint32_t> thisIds = {this->nodes[0].id, this->nodes[1].id, this->nodes[2].id};
-  std::vector<uint32_t> tIds = {t.nodes[0].id, t.nodes[1].id, t.nodes[2].id};
-  std::sort(thisIds.begin(), thisIds.end());
-  std::sort(tIds.begin(), tIds.end());
-  return thisIds[0] == tIds[0] and thisIds[1] == tIds[1] and thisIds[2] == tIds[2];
+  return this->hash_ == t.hash_;
 }
 
 bool Triangle::operator!=(const Triangle &t) const {

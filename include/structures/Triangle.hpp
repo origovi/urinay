@@ -4,7 +4,7 @@
  * @brief Contains the Triangle class specification
  * @version 1.0
  * @date 2022-10-31
- * 
+ *
  * @copyright Copyright (c) 2022 BCN eMotorsport
  */
 
@@ -35,17 +35,17 @@ class Triangle {
   /**
    * @brief Triangle's unique hash. The hash is calculated using the Node(s)' ids.
    */
-  const size_t hash_;
+  const uint64_t hash_;
 
   /**
    * @brief Returns the hash that would have a Triangle having \a n0, \a n1
    * and \a n2 as its Node(s).
-   * 
-   * @param[in] n0 
-   * @param[in] n1 
-   * @param[in] n2 
+   *
+   * @param[in] n0
+   * @param[in] n1
+   * @param[in] n2
    */
-  static size_t computeHash(const Node &n0, const Node &n1, const Node &n2);
+  static uint64_t computeHash(const Node &n0, const Node &n1, const Node &n2);
   friend class std::hash<Triangle>;
 
  public:
@@ -55,60 +55,61 @@ class Triangle {
   const std::array<Node, 3> nodes;
 
   /**
-   * @brief The Edge(s) defined by the 3 Node(s).
+   * @brief The Edge(s) defined by the 3 Node(s). This object contains basically
+   * same info as \a nodes, but it facilitates accessing the \a Triangles' edges
+   * and makes the program a bit quicker spending little extra memory.
    */
   const std::array<Edge, 3> edges;
 
   /**
    * @brief Construct a new Triangle object from 3 Node(s).
-   * 
-   * @param[in] n0 
-   * @param[in] n1 
-   * @param[in] n2 
+   *
+   * @param[in] n0
+   * @param[in] n1
+   * @param[in] n2
    */
   Triangle(const Node &n0, const Node &n1, const Node &n2);
-  
+
   /**
    * @brief Construct a new Triangle object from an Edge and a Node.
-   * 
-   * @param[in] e 
-   * @param[in] n 
+   *
+   * @param[in] e
+   * @param[in] n
    */
   Triangle(const Edge &e, const Node &n);
 
   /**
- * @brief Comparison operator, two triangles will be equal when the Node(s)
- * are the same (the ids are checked).
- * 
- * @param[in] t 
- */
+   * @brief Comparison operator, two triangles will be equal if they have the same hash.
+   *
+   * @param[in] t
+   */
   bool operator==(const Triangle &t) const;
 
   /**
    * @brief Negation of the comparison operator.
-   * 
-   * @param[in] t 
+   *
+   * @param[in] t
    */
   bool operator!=(const Triangle &t) const;
 
   /**
    * @brief Checks if the Triangle contains the Node \a n.
-   * 
-   * @param[in] n 
+   *
+   * @param[in] n
    */
   bool containsNode(const Node &n) const;
 
   /**
    * @brief Checks if the Edge \a e belongs to the Triangle.
-   * 
-   * @param[in] e 
+   *
+   * @param[in] e
    */
   bool containsEdge(const Edge &e) const;
 
   /**
    * @brief Checks if a Node is inside the Triangle's circumcircle.
-   * 
-   * @param[in] n 
+   *
+   * @param[in] n
    */
   bool circleContainsNode(const Node &n) const;
 
@@ -134,16 +135,16 @@ class Triangle {
 
   /**
    * @brief Cout operator.
-   * 
-   * @param[in,out] os 
-   * @param[in] t 
+   *
+   * @param[in,out] os
+   * @param[in] t
    */
   friend std::ostream &operator<<(std::ostream &os, const Triangle &t);
 };
 
 template <>
 struct std::hash<Triangle> {
-  size_t operator()(const Triangle &t) const {
+  uint64_t operator()(const Triangle &t) const {
     return t.hash_;
   }
 };
