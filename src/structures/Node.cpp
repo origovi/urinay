@@ -16,20 +16,20 @@ uint32_t Node::superTriangleNodeNum = 0;
 /* ----------------------------- Private Methods ---------------------------- */
 
 Node::Node(const double &x, const double &y)
-    : point_(x, y), id(SUPERTRIANGLE_BASEID + superTriangleNodeNum), belongsToSuperTriangle_(true) {
+    : point_(x, y), id(SUPERTRIANGLE_BASEID + superTriangleNodeNum), type(ConeType::NONE), belongsToSuperTriangle_(true) {
   superTriangleNodeNum++;
   superTriangleNodeNum %= 3;
 }
 
 /* ----------------------------- Public Methods ----------------------------- */
 
-Node::Node(const double &x, const double &y, const double &xGlobal, const double &yGlobal, const uint32_t &id)
-    : point_(x, y), pointGlobal_(xGlobal, yGlobal), id(id), belongsToSuperTriangle_(false) {
+Node::Node(const double &x, const double &y, const double &xGlobal, const double &yGlobal, const uint32_t &id, const uint8_t &type)
+    : point_(x, y), pointGlobal_(xGlobal, yGlobal), id(id), belongsToSuperTriangle_(false), type(static_cast<ConeType>(type)) {
   if (this->id >= (1 << HASH_SHIFT_NUM) - 3) ROS_ERROR("[urinay] Cone ID is above the allowed threshold, see utils/constants.hpp/HASH_SHIFT_NUM");
 }
 
 Node::Node(const as_msgs::Cone &c)
-    : Node(c.position_baseLink.x, c.position_baseLink.y, c.position_global.x, c.position_global.y, c.id) {}
+    : Node(c.position_baseLink.x, c.position_baseLink.y, c.position_global.x, c.position_global.y, c.id, c.type) {}
 
 const double &Node::x() const {
   return this->point_.x;

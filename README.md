@@ -1,8 +1,8 @@
 # Urinay
 
-Urinay is a color-blind path+tracklimits algorithm developed for computing the centerline and track limits of the Formula Student driverless autocross track without the need of sensing the cones' color. It uses Delaunay triangulation and a limited-heuristic-ponderated tree search and only takes the cone positions and the car pose. Made for [BCN eMotorsport Formula Student team](https://bcnemotorsport.upc.edu) by me (Oriol Gorriz) entirely in C++ and to work with ROS.
+Urinay was originally conceived to be a color-blind path+tracklimits algorithm developed for computing the centerline and track limits of the Formula Student driverless autocross track without the need of sensing the cones' color. **However**, in this branch, you can find a version that uses **color** and can be run in a 'hybrid' mode, which means that it uses the color for the closest cones to the car, and then just geometry (like originally). It achieves it by making use of a Delaunay triangulation and a limited-heuristic-ponderated tree search taking cone info (positions, type and id) and the car pose. Made for [BCN eMotorsport Formula Student team](https://bcnemotorsport.upc.edu) by me (Oriol Gorriz) entirely in C++ and to work with ROS.
 
-***NEW!*** For a **color dependant / hybrid** version check out the branch **`color`**.
+**Note:** For the original **color blind** version check out the branch **`master`**.
 
 ## Disclaimer
 If you use this algorithm for a Formula Student competition, the **only** thing I ask for is acknowledgment for the project. **ALWAYS REFERENCE** the team ***BCN eMotorsport***.
@@ -55,12 +55,18 @@ The search is defined as follows:
     - [Not applied to first midpoint] Any midpoint **already contained** in the path (avoid creating incorrect loops).
     - Any midpoint whose edge is too big or too small compared to the midline average edge length (avoid incorrect midline).
     - Any midpoint that when appended to the path creates an intersection (on the path itself).
+    - Any midpoint whose Edge's cones have not the expected **color** (yellow on the right and blue on the left).
 5. A **heuristic** value for each of the remaining midpoints will be calculated.
 6. **Discard** all midpoints whose heuristic exceeds a threshold.
 7. Append all remaining points as sons of *p*.
 8. Find the best path. This will be the **longest path** (note that a path length will be at most the tree height). If two paths have equal length the one with smallest sum of heuristics will prevail.
 
-### 3.2. Loop closure
+### 3.2. Fail-safe
+Fail-safe(s) allow Urinay to continue the path when certain circumstances cannot be met.
+1. Track layout not being perfect/adequate, the angle or distance from a certain midpoint to another is too big, so the search will stop there (effect of midpoint filtering). To solve this issue, Urinay implements a "general" fail-safe mechanism, i.e. when the car gets too close to the end of the path (aka midline), until the normal sight horizon gets recovered, higher values of these parameters (max angle, distance, etc) are set. During this extraordinary functioning, the sight horizon will be artificially limited (keep in mind that the objective is to get out of this "misbuilt" zone). Results can be seen in *Fig. 4*.
+2. If color-only mode is active and the color of close cones is not correct, the path would stop there. To solve this issue, Urinay implements a "color" fail-safe mechanism, i.e. when the car gets too close to the end of the path (aka midline), until the normal sight horizon gets recovered, color-blind mode gets activated. During this extraordinary functioning, the sight horizon will be artificially limited.
+
+### 3.3. Loop closure
 Obviously we want to detect and compute the whole track midline. Urinay does so by checking if the loop is closed every time a new midpoint is added to the midline. There are two problems here:
 1. How we detect a loop closure? If the following conditions are met:
     - The midline has a **length** greater than a threshold.
@@ -80,11 +86,20 @@ We need to accumulate the midline so when the car moves we still know which was 
 This is why program has also the car's position in the track. Knowing where the car is at every moment gives the possibility to compute the midline from the car's position and then merge it with last iteration's midline, as seen in *Fig. 3*. This way, when a circular midline is detected, the program can communicate it to the path planning (and loop path optimizer) and stop.
 
 ## 6. Result
-The result can be seen in *Fig. 3*. Urinay always chooses the best-longest way, this is why sometimes it wants to take an incorrect path but amends it once the correct path is perceived.
+*Fig. 3* shows the normal functioning of Urinay using no color information. Urinay always chooses the best-longest way, this is why sometimes it wants to take an incorrect path but amends it once the correct path is perceived. Here, although color is perceived, it is completely ignored.
 
 <p align="center">
   <img src="./documentation/assets/urinay_1.gif" alt="Urinay's path+tracklimits" width="500" /><br />
   Figure 3: Urinay's path+tracklimits
+</p>
+
+In *Fig. 4*, you can see a comparison between color-only and color-blind modes in a very "tricky" track.
+Also noticeable, at the left-most point of the path, there is a very tight turn. You can see that the path does not continue until the car gets close the end of it. Then, the fail-safe gets triggered and momentarily the path continues for only a limited length. When the car gets passed this situation, normal parameters and "long" path get restored.
+
+<p align="center">
+  <img src="./documentation/assets/urinay_color_failsafe.gif" alt="Urinay's color-only mode with fail-safe situation" width="45%" />
+  <img src="./documentation/assets/urinay_colorBlind_failsafe.gif" alt="Urinay's color-blind mode with fail-safe situation" width="45%" /><br />
+  Figure 4: Urinay's color-only mode (left) vs color-blind mode (right).
 </p>
 
 ## 7. Considerations

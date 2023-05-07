@@ -44,6 +44,7 @@ void Way::init(const Params::WayComputer::Way &params) {
 Way::Way()
     : avgEdgeLen_(0.0) {
   closestToCarElem_ = this->path_.cend();
+  sizeToCar_ = 0;
 }
 
 bool Way::empty() const {
@@ -98,17 +99,20 @@ void Way::trimByLocal() {
     this->avgEdgeLen_ += (it->len - this->avgEdgeLen_) / t;
     t++;
   }
+
+  // Recalculate sizeToCar_ attribute
+  this->sizeToCar_ = this->size();
 }
 
 bool Way::closesLoop() const {
-  return this->size() >= params_.min_loop_size and Point::distSq(this->front().midPoint(), this->back().midPoint()) <= params_.max_dist_loop_closure * params_.max_dist_loop_closure;
+  return this->size() >= MIN_LOOP_SIZE and Point::distSq(this->front().midPoint(), this->back().midPoint()) <= params_.max_dist_loop_closure * params_.max_dist_loop_closure;
 }
 
 bool Way::closesLoopWith(const Edge &e, const Point *lastPosInTrace) const {
   Point actPos = lastPosInTrace ? *lastPosInTrace : this->back().midPoint();
   return
       // Must have a minimum size
-      this->size() + 1 >= params_.min_loop_size and
+      this->size() + 1 >= MIN_LOOP_SIZE and
       // Distance conditions are met
       Point::distSq(this->front().midPoint(), e.midPoint()) <= params_.max_dist_loop_closure * params_.max_dist_loop_closure and
       // Check closure angle with first point
@@ -210,6 +214,7 @@ Tracklimits Way::getTracklimits() const {
 Way &Way::operator=(const Way &way) {
   this->path_ = std::list<Edge>(way.path_);
   this->avgEdgeLen_ = way.avgEdgeLen_;
+  this->sizeToCar_ = way.sizeToCar_;
   this->updateClosestToCarElem();  // A copy of the attribute would be unsafe
   return *this;
 }
@@ -270,6 +275,11 @@ bool Way::quinEhLobjetiuDeLaSevaDiresio(const Way &way) const {
 const double &Way::getAvgEdgeLen() const {
   return this->avgEdgeLen_;
 }
+
+uint32_t Way::sizeAheadOfCar() const {
+  return this->path_.size() - this->sizeToCar_;
+}
+
 
 std::ostream &operator<<(std::ostream &os, const Way &way) {
   Tracklimits tracklimits = way.getTracklimits();

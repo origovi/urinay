@@ -21,6 +21,7 @@
 #include "structures/Vector.hpp"
 #include "utils/Params.hpp"
 #include "utils/definitions.hpp"
+#include "utils/constants.hpp"
 
 /**
  * @brief Represents a way, i.e. the centerline and track limits.
@@ -52,6 +53,12 @@ class Way {
    * If empty, points to \a path_.cend().
    */
   std::list<Edge>::const_iterator closestToCarElem_;
+
+  /**
+   * @brief Size of midpoints until the car is reached. Set after
+   * trimming and useful for the color minimum_midpoints.
+   */
+  uint32_t sizeToCar_;
 
   /**
    * @brief Updates the \a closestToCarElem_ attribute accordingly.
@@ -199,6 +206,12 @@ class Way {
    * @brief Returns the average Edge length.
    */
   const double &getAvgEdgeLen() const;
+
+  /**
+   * @brief Returns the number of midpoints ahead of the car, until end of Way.
+   * Does not take loop closure into account.
+   */
+  uint32_t sizeAheadOfCar() const;
 
   /**
    * @brief Returns a vector with all the midpoints in global coordinates.

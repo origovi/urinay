@@ -15,8 +15,8 @@
 uint64_t Triangle::computeHash(const Node &n0, const Node &n1, const Node &n2) {
   // Sort here is needed; two triangles with same nodes (but in different order)
   // must have the same hash.
-  std::vector<size_t> ids = {n0.id, n1.id, n2.id};
-  std::sort(ids.begin(), ids.end(), std::greater<size_t>());
+  std::vector<uint64_t> ids = {n0.id, n1.id, n2.id};
+  std::sort(ids.begin(), ids.end(), std::greater<uint64_t>());
   return (ids[0] << (2 * HASH_SHIFT_NUM)) + (ids[1] << HASH_SHIFT_NUM) + ids[2];
 }
 

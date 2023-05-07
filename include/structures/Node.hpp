@@ -34,7 +34,7 @@ class Node {
    * all Node(s) that are part of the supertriangle.
    * See utils/constants.hpp/HASH_SHIFT_NUM to know why this value.
    */
-  static const uint32_t SUPERTRIANGLE_BASEID = (1 << HASH_SHIFT_NUM)-3;
+  static const uint32_t SUPERTRIANGLE_BASEID = (1 << HASH_SHIFT_NUM) - 3;
 
   /**
    * @brief Current supertriangle node number.
@@ -67,9 +67,23 @@ class Node {
 
  public:
   /**
+   * @brief Represents the type of a perceived Cone
+   */
+  enum ConeType { YELLOW,
+                  BLUE,
+                  SMALLORANGE,
+                  BIGORANGE,
+                  NONE };
+
+  /**
    * @brief Node's id, in principle given by the cone tracker.
    */
   const uint32_t id;
+
+  /**
+   * @brief Cone's type, in principle given by the cone classifier.
+   */
+  const ConeType type;
 
   /**
    * @brief Construct a new Node object.
@@ -80,7 +94,7 @@ class Node {
    * @param[in] yGlobal
    * @param[in] id
    */
-  Node(const double &x, const double &y, const double &xGlobal, const double &yGlobal, const uint32_t &id);
+  Node(const double &x, const double &y, const double &xGlobal, const double &yGlobal, const uint32_t &id, const uint8_t &type);
 
   /**
    * @brief Construct a new Node object from an as_msgs::Cone.

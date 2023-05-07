@@ -34,6 +34,7 @@ add_library(${PROJECT_NAME}
   src/modules/Visualization.cpp
   src/utils/Time.cpp
   src/utils/Params.cpp
+  src/utils/Failsafe.cpp
   src/utils/KDTree.cpp
 )
 

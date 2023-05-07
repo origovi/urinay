@@ -13,7 +13,7 @@
 /* ----------------------------- Private Methods ---------------------------- */
 
 uint64_t Edge::computeHash(const Node &n0, const Node &n1) {
-  return (std::max(n0.id, n1.id) << HASH_SHIFT_NUM) + std::min(n0.id, n1.id);
+  return (uint64_t(std::max(n0.id, n1.id)) << HASH_SHIFT_NUM) + std::min(n0.id, n1.id);
 }
 
 double Edge::computeLen(const Node &n0, const Node &n1) {

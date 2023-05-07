@@ -63,7 +63,7 @@ class Edge {
 
   /**
    * @brief Comparison operator. Two Edge(s) will be equal if they have
-   * the same Node(s) (with same ids).
+   * the same hash.
    * 
    * @param[in] e 
    */
