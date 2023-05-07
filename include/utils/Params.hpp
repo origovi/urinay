@@ -32,14 +32,20 @@ class Params {
   } main;
   struct WayComputer {
     double max_triangle_edge_len, min_triangle_angle, max_dist_circum_midPoint;
-    int max_search_tree_height, max_search_options;
-    double search_radius, max_angle_diff, edge_len_diff_factor;
-    double max_next_heuristic;
-    float heur_dist_ponderation;
-    bool allow_intersection;
-    float max_treeSearch_time;
+    int failsafe_max_way_horizon_size;
+    bool general_failsafe;
+    double general_failsafe_safetyFactor;
+    struct Search {
+      int max_way_horizon_size;
+      int max_search_tree_height;
+      double search_radius, max_angle_diff, edge_len_diff_factor;
+      int max_search_options;
+      double max_next_heuristic;
+      float heur_dist_ponderation;
+      bool allow_intersection;
+      float max_treeSearch_time;
+    } search;
     struct Way {
-      int min_loop_size;
       double max_dist_loop_closure;
       double max_angle_diff_loop_closure;
       int vital_num_midpoints;

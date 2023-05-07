@@ -2,14 +2,16 @@
 
 Urinay is a color-blind path+tracklimits algorithm developed for computing the centerline and track limits of the Formula Student driverless autocross track without the need of sensing the cones' color. It uses Delaunay triangulation and a limited-heuristic-ponderated tree search and only takes the cone positions and the car pose. Made for [BCN eMotorsport Formula Student team](https://bcnemotorsport.upc.edu) by me (Oriol Gorriz) entirely in C++ and to work with ROS.
 
+***NEW!*** For a **color dependant / hybrid** version check out the branch **`color`**.
+
 ## Disclaimer
-If you use this algorithm for a Formula Student competition, the **only** thing I ask for is acknowledgment for the project. **Always** reference the team ***BCN eMotorsport***.
+If you use this algorithm for a Formula Student competition, the **only** thing I ask for is acknowledgment for the project. **ALWAYS REFERENCE** the team ***BCN eMotorsport***.
 
 ## Dependencies
 - [Ubuntu](https://ubuntu.com) (tested on 20.04)
 - [ROS](http://wiki.ros.org/ROS/Installation) (tested on Noetic)
 - [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
-- *as_msgs*: The team's proprietary communication messages package. Change it for yours.
+- *as_msgs*: The team's proprietary communication messages package. Change it for yours. See [this issue](https://github.com/origovi/urinay/issues/1) for more info.
 
 ## 1. Delaunay Triangulation
 The first step of this approach consists in obtaining the Delaunay triangulation (a set of triangles) using the detected cones as points in a 2D space.
@@ -58,7 +60,10 @@ The search is defined as follows:
 7. Append all remaining points as sons of *p*.
 8. Find the best path. This will be the **longest path** (note that a path length will be at most the tree height). If two paths have equal length the one with smallest sum of heuristics will prevail.
 
-### 3.2. Loop closure
+### 3.2. Fail-safe
+Fail-safe(s) allow Urinay to continue the path when certain circumstances cannot be met. When track layout not being perfect/adequate, the angle or distance from a certain midpoint to another is too big, so the search will stop there (effect of midpoint filtering). To solve this issue, Urinay implements a "general" fail-safe mechanism, i.e. when the car gets too close to the end of the path (aka midline), until the normal sight horizon gets recovered, higher values of these parameters (max angle, distance, etc) are set. During this extraordinary functioning, the sight horizon will be artificially limited (keep in mind that the objective is to get out of this "misbuilt" zone). Results can be seen in *Fig. 4*.
+
+### 3.3. Loop closure
 Obviously we want to detect and compute the whole track midline. Urinay does so by checking if the loop is closed every time a new midpoint is added to the midline. There are two problems here:
 1. How we detect a loop closure? If the following conditions are met:
     - The midline has a **length** greater than a threshold.
@@ -85,10 +90,21 @@ The result can be seen in *Fig. 3*. Urinay always chooses the best-longest way, 
   Figure 3: Urinay's path+tracklimits
 </p>
 
-## 7. Safety considerations
+In *Fig. 4*, you can see at the left-most point of the path, there is a very tight turn. You can see that the path does not continue until the car gets close the end of it. Then, the fail-safe gets triggered and momentarily the path continues for only a limited length. When the car gets passed this situation, normal parameters and "long" path get restored.
+
+<p align="center">
+  <img src="./documentation/assets/urinay_colorBlind_failsafe.gif" alt="Urinay's fail-safe situation" width="500" /><br />
+  Figure 4: Urinay's fail-safe situation.
+</p>
+
+
+## 7. Considerations
 The following considerations have been taken into account when design and implementation of Urinay:
-1. No abusive use of pointers: In the program there are some places where data is duplicated with the intention to maintain modularity, make a procedure easier to undersand or to avoid a possible invalid pointer.
-2. Maximum computating time guarantee: For this application, a solution which takes too long to compute is not realistic. This is the algorithm that "tells" the car the track path, if it takes too long, the car may crash into the cones. To avoid that 3 mechanisms are used:
+1. Cone position gets more accurate when car comes close to cones: It is assumed that the closer a cone is, the more probable it is that this cone has the real position. The algorithm is constantly updating the cones (and the path). This way the path just ahead of the car always is as accurate as possible.
+2. Calculated path considered behind the car is always right: Cones belonging to a sector the car already went through may also move (due to perception). In this case, since the car has already been there, it is no further re-calculated.
+3. Car may go off-track (or run over cones): Due to control or mechanical issues, the car may deviate from the calculated path. It is very important that the path does not follow the car (we want the car to go back to the correct path). To do so (and also achieving consideration 2.), the path is always calculated FROM the midpoint closest to the car.
+4. No abusive use of pointers: In the program there are some places where data is duplicated with the intention to maintain modularity, make a procedure easier to undersand or to avoid a possible invalid pointer.
+5. Maximum computating time guarantee: For this application, a solution which takes too long to compute is not realistic. This is the algorithm that "tells" the car the track path, if it takes too long, the car may crash into the cones. To avoid it, 3 mechanisms are used:
     - Tree height limit: The height of the search tree will always be limited to a parameter (usually 10, at maximum).
     - Tree sons numer limit: The number of next possible points will be cut down to a parameter (usually 2).
     - Computing time limit: Even if the mentioned restrictions are not sufficent to guarantee, a time limit for every tree search is applied. This way, if a particular search takes too long, e.g. when too many cone false positives are given, the best option when the time limit is hit will be considered as valid.

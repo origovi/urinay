@@ -4,7 +4,7 @@
  * @brief Contains the Node class member functions implementation
  * @version 1.0
  * @date 2022-10-31
- * 
+ *
  * @copyright Copyright (c) 2022 BCN eMotorsport
  */
 
@@ -24,7 +24,9 @@ Node::Node(const double &x, const double &y)
 /* ----------------------------- Public Methods ----------------------------- */
 
 Node::Node(const double &x, const double &y, const double &xGlobal, const double &yGlobal, const uint32_t &id)
-    : point_(x, y), pointGlobal_(xGlobal, yGlobal), id(id), belongsToSuperTriangle_(false) {}
+    : point_(x, y), pointGlobal_(xGlobal, yGlobal), id(id), belongsToSuperTriangle_(false) {
+  if (this->id >= (1 << HASH_SHIFT_NUM) - 3) ROS_ERROR("[urinay] Cone ID is above the allowed threshold, see utils/constants.hpp/HASH_SHIFT_NUM");
+}
 
 Node::Node(const as_msgs::Cone &c)
     : Node(c.position_baseLink.x, c.position_baseLink.y, c.position_global.x, c.position_global.y, c.id) {}

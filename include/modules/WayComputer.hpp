@@ -25,6 +25,8 @@
 #include "structures/Way.hpp"
 #include "utils/KDTree.hpp"
 #include "utils/Params.hpp"
+#include "utils/Failsafe.hpp"
+#include "utils/constants.hpp"
 #include "utils/definitions.hpp"
 
 /**
@@ -37,6 +39,11 @@ class WayComputer {
    * @brief All parameters related to the WayComputer class.
    */
   const Params::WayComputer params_;
+
+  /**
+   * @brief Failsafe of search parameters.
+   */
+  Failsafe<Params::WayComputer::Search> generalFailsafe_;
 
   /**
    * @brief The result of the computation and last iteration's result.
@@ -82,12 +89,17 @@ class WayComputer {
 
   /**
    * @brief Computes and returns the heuristic based on angle and distance.
+   * Uses \a params as its parameters.
    *
    * @param[in] actPos
    * @param[in] nextPos
    * @param[in] dir
+   * @param[in] params
    */
-  double getHeuristic(const Point &actPos, const Point &nextPos, const Vector &dir) const;
+  double getHeuristic(const Point &actPos,
+                      const Point &nextPos,
+                      const Vector &dir,
+                      const Params::WayComputer::Search &params) const;
 
   /**
    * @brief Returns the average edge length of the Way and the Trace \a *trace
@@ -99,34 +111,53 @@ class WayComputer {
 
   /**
    * @brief Finds all possible next Edges according to all metrics and thresholds.
+   * Uses \a params as its parameters.
    *
    * @param[out] nextEdges
    * @param[in] actTrace
    * @param[in] midpointsKDT
    * @param[in] edges
+   * @param[in] params
    */
   void findNextEdges(std::vector<HeurInd> &nextEdges,
                      const Trace *actTrace,
                      const KDTree &midpointsKDT,
-                     const std::vector<Edge> &edges) const;
+                     const std::vector<Edge> &edges,
+                     const Params::WayComputer::Search &params) const;
+
+  /**
+   * @brief Computes which is the best Trace from the best previous best Trace
+   * and the candidate.
+   *
+   * @param best is the best previous Trace
+   * @param t is the candidate to best Trace
+   * @return Trace is the new best Trace
+   */
+  Trace computeBestTraceWithFinishedT(const Trace &best, const Trace &t) const;
 
   /**
    * @brief Performs a limited-height heuristic-ponderated tree search and
-   * returns the index of the best possible next Edge.
+   * returns the index of the best possible next Edge. Uses \a params as its
+   * parameters.
    *
    * @param[in] nextEdges
    * @param[in] midpointsKDT
    * @param[in] edges
+   * @param[in] params
    */
-  size_t treeSearch(std::vector<HeurInd> &nextEdges, const KDTree &midpointsKDT, const std::vector<Edge> &edges) const;
+  size_t treeSearch(std::vector<HeurInd> &nextEdges,
+                    const KDTree &midpointsKDT,
+                    const std::vector<Edge> &edges,
+                    const Params::WayComputer::Search &params) const;
 
   /**
    * @brief Main function of the class, it takes all Edges and computes the best
-   * possible centerline (Way).
+   * possible centerline (Way). Uses \a params as its parameters.
    *
    * @param[in] edges
+   * @param[in] params
    */
-  void computeWay(const std::vector<Edge> &edges);
+  void computeWay(const std::vector<Edge> &edges, const Params::WayComputer::Search &params);
 
  public:
   /**

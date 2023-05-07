@@ -12,8 +12,8 @@
 
 /* ----------------------------- Private Methods ---------------------------- */
 
-size_t Edge::computeHash(const Node &n0, const Node &n1) {
-  return std::max(n0.id, n1.id) * 1e6 + std::min(n0.id, n1.id);
+uint64_t Edge::computeHash(const Node &n0, const Node &n1) {
+  return (uint64_t(std::max(n0.id, n1.id)) << HASH_SHIFT_NUM) + std::min(n0.id, n1.id);
 }
 
 double Edge::computeLen(const Node &n0, const Node &n1) {
@@ -26,7 +26,7 @@ Edge::Edge(const Node &n0, const Node &n1)
     : n0(n0), n1(n1), hash_(computeHash(n0, n1)), len(computeLen(n0, n1)) {}
 
 bool Edge::operator==(const Edge &e) const {
-  return (e.n0 == this->n0 and e.n1 == this->n1) or (e.n1 == this->n0 and e.n0 == this->n1);
+  return this->hash_ == e.hash_;
 }
 
 bool Edge::operator!=(const Edge &e) const {

@@ -4,13 +4,12 @@
  * @brief Contains the definitions (aliases) needed throughout the program.
  * @version 1.0
  * @date 2022-10-31
- * 
+ *
  * @copyright Copyright (c) 2022 BCN eMotorsport
  */
 
 #pragma once
 
-#include <list>
 #include <unordered_set>
 
 #include "structures/Edge.hpp"
