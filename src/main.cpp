@@ -30,6 +30,10 @@ Params *params;
 
 // This is the map callback
 void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
+  if (not wayComputer->isLocalTfValid()) {
+    ROS_WARN("[urinay] CarState not being received.");
+    return;
+  }
   if (data->cones.empty()) {
     ROS_WARN("[urinay] reading empty set of cones.");
     return;
@@ -45,11 +49,16 @@ void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
       nodes.emplace_back(c);
   }
 
+  // Update local coordinates of Nodes (makes original local coords unnecessary)
+  for (const Node &n : nodes) {
+    n.updateLocal(wayComputer->getLocalTf());
+  }
+
   // Delaunay triangulation
   TriangleSet triangles = DelaunayTri::compute(nodes);
 
   // Update the way with the new triangulation
-  wayComputer->update(triangles);
+  wayComputer->update(triangles, data->stamp);
 
   // Publish loop and write tracklimits to a file
   if (wayComputer->isLoopClosed()) {

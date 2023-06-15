@@ -17,7 +17,7 @@ uint64_t Edge::computeHash(const Node &n0, const Node &n1) {
 }
 
 double Edge::computeLen(const Node &n0, const Node &n1) {
-  return sqrt(n0.distSq(n1.point()));
+  return Point::dist(n0.pointGlobal(), n1.pointGlobal());
 }
 
 /* ----------------------------- Public Methods ----------------------------- */

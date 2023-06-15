@@ -34,6 +34,11 @@ class Visualization {
    */
   Params::Visualization params_;
 
+  /**
+   * @brief All Markers will be published with this timestamp.
+   */
+  ros::Time stamp_;
+
  public:
   /**
    * @brief Construct a new Visualization object.
@@ -53,6 +58,14 @@ class Visualization {
    */
   void init(ros::NodeHandle *const nh, const Params::Visualization &params);
   
+  /**
+   * @brief Sets the \a stamp_ attribute, all Markers will be published with
+   * this stamp
+   * 
+   * @param[in] stamp 
+   */
+  void setTimestamp(const ros::Time &stamp);
+
   /**
    * @brief Method to visualize a TriangleSet.
    * 

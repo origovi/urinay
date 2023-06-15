@@ -138,8 +138,7 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *ac
       (nextPossibleEdge.len < (1 - params.edge_len_diff_factor) * this->avgEdgeLen(actTrace) or nextPossibleEdge.len > (1 + params.edge_len_diff_factor) * this->avgEdgeLen(actTrace)) or
 
       // 6. [If not allow_intersection, only before closing the loop] Remove any Edge which appended would create an intersection
-      (not params.allow_intersection and (not actTrace or not actTrace->isLoopClosed()) and not this->way_.closesLoopWith(nextPossibleEdge) and this->way_.intersectsWith(nextPossibleEdge))
-    );
+      (not params.allow_intersection and (not actTrace or not actTrace->isLoopClosed()) and not this->way_.closesLoopWith(nextPossibleEdge) and this->way_.intersectsWith(nextPossibleEdge)));
 
     if (removeConditions)
       it = nextPossibleEdges.erase(it);
@@ -169,8 +168,8 @@ Trace WayComputer::computeBestTraceWithFinishedT(const Trace &best, const Trace 
   // Note that here, no trace is added to the queue.
   if (t.size() > best.size() or (t.size() == best.size() and t.sumHeur() < best.sumHeur())) {
     return t;
-  }
-  else return best;
+  } else
+    return best;
 }
 
 size_t WayComputer::treeSearch(std::vector<HeurInd> &nextEdges, const KDTree &midpointsKDT, const std::vector<Edge> &edges, const Params::WayComputer::Search &params) const {
@@ -281,14 +280,16 @@ void WayComputer::stateCallback(const as_msgs::CarState::ConstPtr &data) {
   this->localTfValid_ = true;
 }
 
-void WayComputer::update(TriangleSet &triangulation) {
+void WayComputer::update(TriangleSet &triangulation, const ros::Time &stamp) {
   if (not this->localTfValid_) {
     ROS_WARN("[urinay] CarState not being received.");
     return;
   }
 
-  // #0: Update last way (this will be used to calculate the raplan flag)
+  // #0: Update last way (this will be used to calculate the raplan flag).
+  //     And update stamp.
   this->lastWay_ = this->way_;
+  this->lastStamp_ = stamp;
 
   // #1: Remove all triangles which we know will not be part of the track.
   this->filterTriangulation(triangulation);
@@ -330,6 +331,7 @@ void WayComputer::update(TriangleSet &triangulation) {
   }
 
   // #7: Visualize
+  Visualization::getInstance().setTimestamp(stamp);
   Visualization::getInstance().visualize(edgeSet);
   Visualization::getInstance().visualize(triangulation);
   Visualization::getInstance().visualize(this->wayToPublish_);
@@ -345,6 +347,14 @@ void WayComputer::writeWayToFile(const std::string &file_path) const {
   oStreamToWrite.close();
 }
 
+const bool &WayComputer::isLocalTfValid() const {
+  return this->localTfValid_;
+}
+
+const Eigen::Affine3d &WayComputer::getLocalTf() const {
+  return this->localTf_;
+}
+
 std::vector<Point> WayComputer::getPath() const {
   return this->wayToPublish_.getPath();
 }
@@ -355,7 +365,7 @@ Tracklimits WayComputer::getTracklimits() const {
 
 as_msgs::PathLimits WayComputer::getPathLimits() const {
   as_msgs::PathLimits res;
-  res.stamp = ros::Time::now();
+  res.stamp = this->lastStamp_;
 
   // res.replan indicates if the Way is different from last iteration's
   res.replan = this->way_ != this->lastWay_;

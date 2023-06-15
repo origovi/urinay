@@ -145,9 +145,9 @@ class Way {
   /**
    * @brief Makes a copy making sure that:
    * - Possible spare points are removed. (e.g. when the loop closes with the second point).
-   * - First and last Edge(s) coincide.
+   * - First and last Edge(s) coincide (EXACTLY equals).
    */
-  Way restructureClosure();
+  Way restructureClosure() const;
 
   /**
    * @brief Checks if the loop is closed. This means:
