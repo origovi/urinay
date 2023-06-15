@@ -79,6 +79,7 @@ as_msgs::Cone Node::cone() const {
   as_msgs::Cone res;
   res.id = this->id;
   res.position_global = this->pointGlobal().gmPoint();
+  res.position_baseLink = this->point().gmPoint();
   res.type = 4;  // None
   return res;
 }

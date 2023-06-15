@@ -119,7 +119,7 @@ bool Way::closesLoopWith(const Edge &e, const Point *lastPosInTrace) const {
       abs(Vector(this->front().midPoint(), (++this->path_.begin())->midPoint()).angleWith(Vector(actPos, e.midPoint()))) <= params_.max_angle_diff_loop_closure;
 }
 
-Way Way::restructureClosure() {
+Way Way::restructureClosure() const {
   Way res = *this;
   if (res.front() != res.back()) {
     // Assume last Edge is the one that closes the loop
@@ -138,9 +138,13 @@ Way Way::restructureClosure() {
     // (all that are before the edge that closes the loop)
     res.path_.erase(res.path_.begin(), closestWithLastIt);
   }
-  // Note that here only the ids are equal, not necessarily the midpoint
-  // this is why the midpoint needs to be updated.
-  if (res.front() == res.back()) res.path_.pop_back();
+  // Here last midpoint (now the closest to the first one) will be replaced
+  // by the first one. Making sure that they are EXACTLY the same (id and value).
+  if (res.front() == res.back() or
+      Vector::pointBehind(res.back().midPointGlobal(), res.front().midPointGlobal(), Vector(res.beforeBack().midPointGlobal(), res.back().midPointGlobal())) or
+      Point::dist(res.back().midPointGlobal(), res.front().midPointGlobal()) < SAME_MIDPOINT_DIST_THRESHOLD) {
+    res.path_.pop_back();
+  }
   res.path_.push_back(res.front());
 
   return res;
@@ -183,11 +187,12 @@ Tracklimits Way::getTracklimits() const {
   Tracklimits res;
   res.first.reserve(this->size());
   res.second.reserve(this->size());
-  Point pAnt = this->empty() ? Point(0, 0) : this->front().midPointGlobal() - Point(5, 0);  // This only works in a global, the 5 is arbitrary
+  Point pAnt = this->empty() ? Point(0, 0) : Point(-50, this->front().midPointGlobal().y);  // This only works in a global, the -50 is arbitrary
 
-  const Node *left;
-  const Node *right;
+  const Node *left, *firstLeft;
+  const Node *right, *firstRight;
 
+  size_t edgeInd = 0;
   for (const Edge &e : this->path_) {
     Vector pAntPAct(pAnt, e.midPointGlobal());
 
@@ -200,13 +205,37 @@ Tracklimits Way::getTracklimits() const {
       right = &e.n0;
     }
 
-    // Only append those Nodes that have not been appended before
-    if (*left != res.first.back())
-      res.first.push_back(*left);
-    if (*right != res.second.back())
-      res.second.push_back(*right);
+    // Save first Nodes
+    if (edgeInd == 0) {
+      firstLeft = left;
+      firstRight = right;
+    }
+
+    // Only append those Nodes that:
+    // - have not been appended before
+    // - have a position behind the last one
+    // - [only for the 3 lasts (if loop closure)] have a position in front of the first one
+    if (res.first.empty() or
+        (*left != res.first.back() and
+         !Vector::pointBehind(left->pointGlobal(), res.first.back().pointGlobal(), pAntPAct) and
+         (!this->closesLoop() or edgeInd < this->size() - 3 or !Vector::pointBehind(res.first.front().pointGlobal(), left->pointGlobal(), pAntPAct)))) {
+      if (*left == *firstLeft) {
+        res.first.push_back(*firstLeft);
+      }
+      else res.first.push_back(*left);
+    }
+    if (res.second.empty() or
+        (*right != res.second.back() and
+         !Vector::pointBehind(right->pointGlobal(), res.second.back().pointGlobal(), pAntPAct) and
+         (!this->closesLoop() or edgeInd < this->size() - 3 or !Vector::pointBehind(res.second.front().pointGlobal(), right->pointGlobal(), pAntPAct)))) {
+      if (*right == *firstRight) {
+        res.second.push_back(*firstRight);
+      }
+      else res.second.push_back(*right);
+    }
 
     pAnt = e.midPointGlobal();
+    edgeInd++;
   }
   return res;
 }
@@ -279,7 +308,6 @@ const double &Way::getAvgEdgeLen() const {
 uint32_t Way::sizeAheadOfCar() const {
   return this->path_.size() - this->sizeToCar_;
 }
-
 
 std::ostream &operator<<(std::ostream &os, const Way &way) {
   Tracklimits tracklimits = way.getTracklimits();

@@ -58,6 +58,11 @@ class WayComputer {
   Way wayToPublish_;
 
   /**
+   * @brief Last data timestamp.
+   */
+  ros::Time lastStamp_;
+
+  /**
    * @brief Whether or not \a way_ has its loop closed.
    */
   bool isLoopClosed_ = false;
@@ -189,8 +194,9 @@ class WayComputer {
    * @brief Takes the Delaunay triangle set and computes the Way.
    *
    * @param[in,out] triangulation
+   * @param[in] stamp
    */
-  void update(TriangleSet &triangulation);
+  void update(TriangleSet &triangulation, const ros::Time &stamp);
 
   /**
    * @brief Returns if the loop has been closed.
@@ -203,6 +209,16 @@ class WayComputer {
    * @param[in] file_path
    */
   void writeWayToFile(const std::string &file_path) const;
+
+  /**
+   * @brief Returns if the attribute localTf is valid.
+   */
+  const bool &isLocalTfValid() const;
+
+  /**
+   * @brief Returns the transformation from global to local.
+   */
+  const Eigen::Affine3d &getLocalTf() const;
 
   /**
    * @brief Returns the centerline vector in global coordinates.

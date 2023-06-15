@@ -30,6 +30,13 @@ const uint32_t HASH_SHIFT_NUM = 21;
 const uint32_t MIN_LOOP_SIZE = 25;
 
 /**
+ * @brief If two midpoints have a distance (between each other) of less than
+ * \a SAME_MIDPOINT_DIST_THRESHOLD meters, it will be considered to be the same
+ * point.
+ */
+const double SAME_MIDPOINT_DIST_THRESHOLD = 0.2;
+
+/**
  * @brief Minimum number of midpoints ahead of the car so that a failsafe is
  * not triggered.
  *  - If set to 1: the failsafe will be activated only when the car does not
