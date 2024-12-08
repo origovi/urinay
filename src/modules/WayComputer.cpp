@@ -267,13 +267,9 @@ WayComputer::WayComputer(const Params::WayComputer &params) : params_(params) {
   this->generalFailsafe_.initGeneral(this->params_.search, this->params_.general_failsafe_safetyFactor, this->params_.failsafe_max_way_horizon_size);
 }
 
-void WayComputer::stateCallback(const as_msgs::CarState::ConstPtr &data) {
-  geometry_msgs::Pose pose;
-  pose.position = data->odom.position;
-  tf::Quaternion qAux;
-  qAux.setRPY(0.0, 0.0, data->odom.heading);
-  tf::quaternionTFToMsg(qAux, pose.orientation);
-  tf::poseMsgToEigen(pose, this->localTf_);
+void WayComputer::stateCallback(const nav_msgs::Odometry::ConstPtr &data) {
+  ROS_WARN("STATE CALLBACK");
+  tf::poseMsgToEigen(data->pose.pose, this->localTf_);
 
   this->localTf_ = this->localTf_.inverse();
 
@@ -363,8 +359,8 @@ Tracklimits WayComputer::getTracklimits() const {
   return this->wayToPublish_.getTracklimits();
 }
 
-as_msgs::PathLimits WayComputer::getPathLimits() const {
-  as_msgs::PathLimits res;
+custom_msgs::PathLimits WayComputer::getPathLimits() const {
+  custom_msgs::PathLimits res;
   res.stamp = this->lastStamp_;
 
   // res.replan indicates if the Way is different from last iteration's
@@ -378,18 +374,18 @@ as_msgs::PathLimits WayComputer::getPathLimits() const {
   }
 
   // Fill Tracklimits
-  Tracklimits tracklimits = this->wayToPublish_.getTracklimits();
-  res.tracklimits.stamp = res.stamp;
-  res.tracklimits.left.reserve(tracklimits.first.size());
-  for (const Node &n : tracklimits.first) {
-    res.tracklimits.left.push_back(n.cone());
-  }
-  for (const Node &n : tracklimits.second) {
-    res.tracklimits.right.push_back(n.cone());
-  }
+  // Tracklimits tracklimits = this->wayToPublish_.getTracklimits();
+  // res.tracklimits.stamp = res.stamp;
+  // res.tracklimits.left.reserve(tracklimits.first.size());
+  // for (const Node &n : tracklimits.first) {
+  //   res.tracklimits_left.push_back(n.cone());
+  // }
+  // for (const Node &n : tracklimits.second) {
+  //   res.tracklimits_right.push_back(n.cone());
+  // }
 
   // res.tracklimits.replan indicates if the n midpoints in front of the car
   // have varied from last iteration
-  res.tracklimits.replan = this->way_.quinEhLobjetiuDeLaSevaDiresio(this->lastWay_);
+  // res.tracklimits.replan = this->way_.quinEhLobjetiuDeLaSevaDiresio(this->lastWay_);
   return res;
 }

@@ -28,8 +28,8 @@ Node::Node(const double &x, const double &y, const double &xGlobal, const double
   if (this->id >= (1 << HASH_SHIFT_NUM) - 3) ROS_ERROR("[urinay] Cone ID is above the allowed threshold, see utils/constants.hpp/HASH_SHIFT_NUM");
 }
 
-Node::Node(const as_msgs::Cone &c)
-    : Node(c.position_baseLink.x, c.position_baseLink.y, c.position_global.x, c.position_global.y, c.id) {}
+Node::Node(const custom_msgs::ConeWithId &c)
+    : Node(c.position.x, c.position.y, c.position.x, c.position.y, c.id) {}
 
 const double &Node::x() const {
   return this->point_.x;
@@ -75,14 +75,14 @@ double Node::angleWith(const Node &n0, const Node &n1) const {
   return abs(Vector(this->point(), n0.point()).angleWith(Vector(this->point(), n1.point())));
 }
 
-as_msgs::Cone Node::cone() const {
-  as_msgs::Cone res;
-  res.id = this->id;
-  res.position_global = this->pointGlobal().gmPoint();
-  res.position_baseLink = this->point().gmPoint();
-  res.type = 4;  // None
-  return res;
-}
+// as_msgs::Cone Node::cone() const {
+//   as_msgs::Cone res;
+//   res.id = this->id;
+//   res.position_global = this->pointGlobal().gmPoint();
+//   res.position_baseLink = this->point().gmPoint();
+//   res.type = 4;  // None
+//   return res;
+// }
 
 std::ostream &operator<<(std::ostream &os, const Node &n) {
   os << "N(" << n.x() << ", " << n.y() << ")";

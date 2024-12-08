@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <as_msgs/PathLimits.h>
 #include <ros/ros.h>
 
 #include <Eigen/Geometry>

@@ -4,10 +4,10 @@ project(urinay)
 add_compile_options(-std=c++14)
 set(CMAKE_BUILD_TYPE "Release")
 
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs as_msgs sensor_msgs roslib eigen_conversions)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs custom_msgs sensor_msgs roslib eigen_conversions)
 find_package(Eigen3 REQUIRED)
 
-generate_messages(DEPENDENCIES as_msgs)
+generate_messages(DEPENDENCIES custom_msgs)
 
 catkin_package(
   INCLUDE_DIRS include
@@ -38,8 +38,8 @@ add_library(${PROJECT_NAME}
   src/utils/KDTree.cpp
 )
 
-add_dependencies(${PROJECT_NAME}_exec as_msgs_generate_messages_cpp)
-add_dependencies(${PROJECT_NAME} as_msgs_generate_messages_cpp)
+add_dependencies(${PROJECT_NAME}_exec custom_msgs_generate_messages_cpp)
+add_dependencies(${PROJECT_NAME} custom_msgs_generate_messages_cpp)
 
 target_link_libraries(${PROJECT_NAME}_exec ${catkin_LIBRARIES} ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})

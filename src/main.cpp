@@ -8,8 +8,9 @@
  * @copyright Copyright (c) 2022 BCN eMotorsport
  */
 
-#include <as_msgs/ConeArray.h>
-#include <as_msgs/PathLimits.h>
+#include <custom_msgs/ConeWithIdArray.h>
+#include <custom_msgs/ConeWithId.h>
+#include <custom_msgs/PathLimits.h>
 #include <ros/package.h>
 #include <ros/ros.h>
 #include <sys/stat.h>
@@ -29,7 +30,7 @@ WayComputer *wayComputer;
 Params *params;
 
 // This is the map callback
-void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
+void callback_ccat(const custom_msgs::ConeWithIdArray::ConstPtr &data) {
   if (not wayComputer->isLocalTfValid()) {
     ROS_WARN("[urinay] CarState not being received.");
     return;
@@ -44,9 +45,9 @@ void callback_ccat(const as_msgs::ConeArray::ConstPtr &data) {
   // Convert to Node vector
   std::vector<Node> nodes;
   nodes.reserve(data->cones.size());
-  for (const as_msgs::Cone &c : data->cones) {
-    if (c.confidence >= params->main.min_cone_confidence) 
-      nodes.emplace_back(c);
+  ROS_INFO_STREAM("reading " << data->cones.size() << " cones." << std::endl);
+  for (const custom_msgs::ConeWithId &c : data->cones) {
+    nodes.emplace_back(c);
   }
 
   // Update local coordinates of Nodes (makes original local coords unnecessary)
@@ -95,8 +96,8 @@ int main(int argc, char **argv) {
   ros::Subscriber subCones = nh->subscribe(params->main.input_cones_topic, 1, callback_ccat);
   ros::Subscriber subPose = nh->subscribe(params->main.input_pose_topic, 1, &WayComputer::stateCallback, wayComputer);
 
-  pubPartial = nh->advertise<as_msgs::PathLimits>(params->main.output_partial_topic, 1);
-  pubFull = nh->advertise<as_msgs::PathLimits>(params->main.output_full_topic, 1);
+  pubPartial = nh->advertise<custom_msgs::PathLimits>(params->main.output_partial_topic, 1);
+  pubFull = nh->advertise<custom_msgs::PathLimits>(params->main.output_full_topic, 1);
 
   ros::spin();
 }

@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <as_msgs/Cone.h>
 #include <geometry_msgs/Point.h>
+#include <custom_msgs/ConeWithId.h>
 #include <ros/ros.h>
 
 #include <Eigen/Geometry>
@@ -83,11 +83,11 @@ class Node {
   Node(const double &x, const double &y, const double &xGlobal, const double &yGlobal, const uint32_t &id);
 
   /**
-   * @brief Construct a new Node object from an as_msgs::Cone.
+   * @brief Construct a new Node object from a custom_msgs::ConeWithId.
    *
    * @param[in] c
    */
-  Node(const as_msgs::Cone &c);
+  Node(const custom_msgs::ConeWithId &c);
 
   /**
    * @brief Returns the Node x local coordinate.
@@ -162,7 +162,7 @@ class Node {
   /**
    * @brief Converts (and returns) the Node as an as_msgs::Cone.
    */
-  as_msgs::Cone cone() const;
+  // as_msgs::Cone cone() const;
 
   /**
    * @brief Cout operator.

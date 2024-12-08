@@ -1,6 +1,6 @@
 # I/O Topics
-input_cones_topic:              "/AS/P/ccat/cones"
-input_pose_topic:               "/AS/C/state"
+input_cones_topic:              "/slam/map_with_id"
+input_pose_topic:               "/fast_limo/state"
 output_full_topic:              "/AS/P/pathlimits/full"
 output_partial_topic:           "/AS/P/pathlimits/partial"
 
