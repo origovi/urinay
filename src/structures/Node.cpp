@@ -75,15 +75,6 @@ double Node::angleWith(const Node &n0, const Node &n1) const {
   return abs(Vector(this->point(), n0.point()).angleWith(Vector(this->point(), n1.point())));
 }
 
-// as_msgs::Cone Node::cone() const {
-//   as_msgs::Cone res;
-//   res.id = this->id;
-//   res.position_global = this->pointGlobal().gmPoint();
-//   res.position_baseLink = this->point().gmPoint();
-//   res.type = 4;  // None
-//   return res;
-// }
-
 std::ostream &operator<<(std::ostream &os, const Node &n) {
   os << "N(" << n.x() << ", " << n.y() << ")";
   return os;

@@ -367,7 +367,11 @@ custom_msgs::PathLimits WayComputer::getPathLimits() const {
   res.header = this->lastHeader_;
 
   // res.replan indicates if the Way is different from last iteration's
-  res.replan = this->way_ != this->lastWay_;
+  res.new_path = this->way_ != this->lastWay_;
+
+  // res.tracklimits.replan indicates if the n midpoints in front of the car
+  // have varied from last iteration
+  res.new_close_midpoints = this->way_.vitalMidpointsChanged(this->lastWay_);
 
   // Fill path
   std::vector<Point> path = this->wayToPublish_.getPath();
@@ -377,18 +381,15 @@ custom_msgs::PathLimits WayComputer::getPathLimits() const {
   }
 
   // Fill Tracklimits
-  // Tracklimits tracklimits = this->wayToPublish_.getTracklimits();
-  // res.tracklimits.stamp = res.stamp;
-  // res.tracklimits.left.reserve(tracklimits.first.size());
-  // for (const Node &n : tracklimits.first) {
-  //   res.tracklimits_left.push_back(n.cone());
-  // }
-  // for (const Node &n : tracklimits.second) {
-  //   res.tracklimits_right.push_back(n.cone());
-  // }
+  Tracklimits tracklimits = this->wayToPublish_.getTracklimits();
+  res.tracklimits_left.reserve(tracklimits.first.size());
+  for (const Node &n : tracklimits.first) {
+    res.tracklimits_left.push_back(n.point().gmPoint());
+  }
+  res.tracklimits_right.reserve(tracklimits.second.size());
+  for (const Node &n : tracklimits.second) {
+    res.tracklimits_right.push_back(n.point().gmPoint());
+  }
 
-  // res.tracklimits.replan indicates if the n midpoints in front of the car
-  // have varied from last iteration
-  // res.tracklimits.replan = this->way_.quinEhLobjetiuDeLaSevaDiresio(this->lastWay_);
   return res;
 }

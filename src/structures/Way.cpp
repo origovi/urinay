@@ -286,7 +286,7 @@ bool Way::operator!=(const Way &way) const {
   return not(*this == way);
 }
 
-bool Way::quinEhLobjetiuDeLaSevaDiresio(const Way &way) const {
+bool Way::vitalMidpointsChanged(const Way &way) const {
   // Replan every time the emptiness changes
   if (this->empty() != way.empty()) return true;
   // Find the common starting point (replan if not found)

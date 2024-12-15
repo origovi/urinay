@@ -160,11 +160,6 @@ class Node {
   double angleWith(const Node &n0, const Node &n1) const;
 
   /**
-   * @brief Converts (and returns) the Node as an as_msgs::Cone.
-   */
-  // as_msgs::Cone cone() const;
-
-  /**
    * @brief Cout operator.
    *
    * @param[in,out] os

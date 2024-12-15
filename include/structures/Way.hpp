@@ -203,7 +203,7 @@ class Way {
    * 
    * @param[in] way 
    */
-  bool quinEhLobjetiuDeLaSevaDiresio(const Way &way) const;
+  bool vitalMidpointsChanged(const Way &way) const;
 
   /**
    * @brief Returns the number of midpoints ahead of the car, until end of Way.
