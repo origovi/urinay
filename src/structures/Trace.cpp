@@ -13,7 +13,7 @@
 /* ----------------------------- Private Methods ---------------------------- */
 
 Trace::Connection::Connection(const size_t &edgeInd, const double &heur, const double &edgeLen, const bool &loopClosed, std::shared_ptr<Connection> before)
-    : edgeInd(edgeInd), before(before), heur(heur), size(before ? (before->size + 1) : 1), avgEdgeLen(before ? before->avgEdgeLen + ((edgeLen - before->avgEdgeLen) / before->size + 1) : edgeLen), loopClosed(before ? (before->loopClosed or loopClosed) : loopClosed) {}
+    : edgeInd(edgeInd), before(before), heur(heur), orig_size(before ? (before->orig_size + 1) : 1), avgEdgeLen(before ? before->avgEdgeLen + ((edgeLen - before->avgEdgeLen) / (before->orig_size + 1)) : edgeLen), loopClosed(before ? (before->loopClosed or loopClosed) : loopClosed) {}
 
 bool Trace::Connection::containsEdge(const size_t &_edgeInd) const {
   return edgeInd == _edgeInd || (before ? before->containsEdge(_edgeInd) : false);
@@ -43,7 +43,14 @@ size_t Trace::size() const {
   if (empty())
     return 0;
   else
-    return this->p->size;
+    return 1 + before().size();
+}
+
+size_t Trace::orig_size() const {
+  if (empty())
+    return 0;
+  else
+    return this->p->orig_size;
 }
 
 Trace Trace::before() const {
@@ -92,6 +99,15 @@ bool Trace::containsEdge(const size_t &edgeInd) const {
     return false;
   else
     return this->p->containsEdge(edgeInd);
+}
+
+void Trace::detachFrom(const size_t &edgeInd) {
+  if (empty()) return;
+  if (this->p->before and this->p->before->edgeInd == edgeInd) {
+    this->p->before.reset();
+  } else {
+    before().detachFrom(edgeInd);
+  }
 }
 
 void Trace::clear() {

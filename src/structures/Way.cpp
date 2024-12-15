@@ -31,18 +31,13 @@ void Way::updateClosestToCarElem() {
   this->closestToCarElem_ = smallestDWFIt;
 }
 
-bool Way::segmentsIntersect(const Point &A, const Point &B, const Point &C, const Point &D) {
-  return Point::ccw(A, C, D) != Point::ccw(B, C, D) and Point::ccw(A, B, C) != Point::ccw(A, B, D);
-}
-
 /* ----------------------------- Public Methods ----------------------------- */
 
 void Way::init(const Params::WayComputer::Way &params) {
   params_ = params;
 }
 
-Way::Way()
-    : avgEdgeLen_(0.0) {
+Way::Way() {
   closestToCarElem_ = this->path_.cend();
   sizeToCar_ = 0;
 }
@@ -78,8 +73,8 @@ void Way::updateLocal(const Eigen::Affine3d &tf) {
 
 void Way::addEdge(const Edge &edge) {
   this->path_.push_back(edge);
+  this->edgesInPath_.insert(this->path_.back());
   if (this->path_.size() == 1) closestToCarElem_ = this->path_.cbegin();
-  this->avgEdgeLen_ += (edge.len - this->avgEdgeLen_) / this->size();
 }
 
 void Way::trimByLocal() {
@@ -88,16 +83,15 @@ void Way::trimByLocal() {
   auto closestToCarElem = this->closestToCarElem_;
 
   if (closestToCarElem != std::prev(this->path_.cend())) {
+    // Update this->edgesInPath_ param
+    for (auto it = std::next(closestToCarElem); it != std::prev(this->path_.cend()); it++) {
+      this->edgesInPath_.erase(*it);
+    }
+    // Avoid deleting an edge in this->edgesInPath_ that is actually in this->path_
+    if (this->front() != this->back()) this->edgesInPath_.erase(*std::prev(this->path_.cend()));
+
     // Erase all elements after closest element (included)
     this->path_.erase(++closestToCarElem, this->path_.cend());
-  }
-
-  // Recalculate the mean edge length attribute
-  size_t t = 1;
-  this->avgEdgeLen_ = 0.0;
-  for (auto it = this->path_.cbegin(); it != this->path_.cend(); it++) {
-    this->avgEdgeLen_ += (it->len - this->avgEdgeLen_) / t;
-    t++;
   }
 
   // Recalculate sizeToCar_ attribute
@@ -150,28 +144,53 @@ Way Way::restructureClosure() const {
   return res;
 }
 
-bool Way::intersectsWith(const Edge &e) const {
-  if (this->size() <= 2) return false;
+bool Way::intersectsWith(const Edge &e, const Trace* const actTrace, const std::vector<Edge> &edges) const {
+  size_t trace_size = actTrace ? actTrace->size() : 0;
+  if (this->size() + trace_size < 3) return false;
   Point s1p1, s1p2;
-  const Point s2p1 = this->back().midPoint();
-  const Point s2p2 = e.midPoint();
-  auto it1 = std::next(this->path_.crbegin());
-  auto it2 = std::next(it1);
-  while (it2 != this->path_.crend()) {
-    s1p1 = it1->midPoint();
-    s1p2 = it2->midPoint();
+  const Point s2p1 = e.midPoint();
+  const Point s2p2 = actTrace ? edges[actTrace->edgeInd()].midPoint() : this->back().midPoint();
+
+  // Check if intersects with Trace
+  if (actTrace) {
+    Trace aux = actTrace->before();
+    if (!aux.empty())
+      s1p1 = edges[aux.edgeInd()].midPoint();
+    while (aux.size() >= 2) {
+      aux = aux.before();
+      s1p2 = edges[aux.edgeInd()].midPoint();
+      if (this->segmentsIntersect(s1p1, s1p2, s2p1, s2p2)) return true;
+      s1p1 = s1p2;
+    }
+  }
+
+  if (this->empty()) return false;
+  
+  // Check if intersects with Way
+  std::list<Edge>::const_reverse_iterator it;
+  if (actTrace) {
+    it = this->path_.crbegin();
+    if (trace_size < 2) {
+      s1p1 = it->midPoint();
+      it++;
+    }
+  }
+  else {
+    it = std::next(this->path_.crbegin());
+    s1p1 = it->midPoint();
+    it++;
+  }
+  while (it != this->path_.crend()) {
+    s1p2 = it->midPoint();
     if (this->segmentsIntersect(s1p1, s1p2, s2p1, s2p2)) return true;
-    it1++;
-    it2++;
+    s1p1 = s1p2;
+    it++;
   }
   return false;
 }
 
 bool Way::containsEdge(const Edge &e) const {
-  for (const Edge &edge : this->path_) {
-    if (e == edge) return true;
-  }
-  return false;
+  return this->edgesInPath_.find(e) != this->edgesInPath_.cend();
 }
 
 std::vector<Point> Way::getPath() const {
@@ -243,7 +262,7 @@ Tracklimits Way::getTracklimits() const {
 
 Way &Way::operator=(const Way &way) {
   this->path_ = std::list<Edge>(way.path_);
-  this->avgEdgeLen_ = way.avgEdgeLen_;
+  this->edgesInPath_ = way.edgesInPath_;
   this->sizeToCar_ = way.sizeToCar_;
   this->updateClosestToCarElem();  // A copy of the attribute would be unsafe
   return *this;
@@ -300,10 +319,6 @@ bool Way::quinEhLobjetiuDeLaSevaDiresio(const Way &way) const {
   // accordingly, but this case is better covered by the planner itself (it will
   // replan when it runs out of midpoints).
   return false;
-}
-
-const double &Way::getAvgEdgeLen() const {
-  return this->avgEdgeLen_;
 }
 
 uint32_t Way::sizeAheadOfCar() const {

@@ -44,6 +44,7 @@ class Params {
       float heur_dist_ponderation;
       bool allow_intersection;
       float max_treeSearch_time;
+      double min_distSq_between_midpoints;
     } search;
     struct Way {
       double max_dist_loop_closure;

@@ -12,10 +12,6 @@
 
 /* ----------------------------- Private Methods ---------------------------- */
 
-void Visualization::setTimestamp(const ros::Time &stamp) {
-  this->stamp_ = stamp;
-}
-
 /* ------------------------------ Public Methods ---------------------------- */
 
 Visualization &Visualization::getInstance() {
@@ -32,6 +28,10 @@ void Visualization::init(ros::NodeHandle *const nh, const Params::Visualization 
   }
 }
 
+void Visualization::setHeader(const std_msgs::Header &header) {
+  this->lastHeader_ = header;
+}
+
 void Visualization::visualize(const TriangleSet &triSet) const {
   if (not this->params_.publish_markers) return;
   if (trianglesPub.getNumSubscribers() <= 0) return;
@@ -40,8 +40,7 @@ void Visualization::visualize(const TriangleSet &triSet) const {
   ma.markers.reserve(1 + 5 * triSet.size());
   visualization_msgs::Marker mTriangulation, mCircumCenter, mMidpoint;
   size_t id = 0;
-  mTriangulation.header.stamp = this->stamp_;
-  mTriangulation.header.frame_id = "map";
+  mTriangulation.header = this->lastHeader_;
   mTriangulation.color.a = 1.0;
   mTriangulation.color.r = 1.0;
   mTriangulation.pose.orientation.w = 1.0;
@@ -102,8 +101,7 @@ void Visualization::visualize(const EdgeSet &edgeSet) const {
   ma.markers.reserve(edgeSet.size() + 1);
   visualization_msgs::Marker mMidpoint;
   size_t id = 0;
-  mMidpoint.header.stamp = this->stamp_;
-  mMidpoint.header.frame_id = "map";
+  mMidpoint.header = this->lastHeader_;
   mMidpoint.color.a = 1.0;
   mMidpoint.color.r = 1.0;
   mMidpoint.pose.orientation.w = 1.0;
@@ -132,8 +130,7 @@ void Visualization::visualize(const Way &way) const {
   ma.markers.reserve(3 * way.size() + 1);
   visualization_msgs::Marker mMidpoints, mLeft, mRight;
   size_t id = 0;
-  mMidpoints.header.stamp = this->stamp_;
-  mMidpoints.header.frame_id = "map";
+  mMidpoints.header = this->lastHeader_;
   mMidpoints.color.a = 1.0;
   mMidpoints.color.g = 1.0;
   mMidpoints.pose.orientation.w = 1.0;

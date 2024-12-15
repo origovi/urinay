@@ -21,6 +21,7 @@
 
 #include "modules/Visualization.hpp"
 #include "structures/Trace.hpp"
+#include "structures/TreeBuffer.hpp"
 #include "structures/Vector.hpp"
 #include "structures/Way.hpp"
 #include "utils/KDTree.hpp"
@@ -60,7 +61,7 @@ class WayComputer {
   /**
    * @brief Last data timestamp.
    */
-  ros::Time lastStamp_;
+  std_msgs::Header lastHeader_;
 
   /**
    * @brief Whether or not \a way_ has its loop closed.
@@ -76,6 +77,13 @@ class WayComputer {
    * @brief Whether or not \a localTf_ is valid.
    */
   bool localTfValid_ = false;
+
+  /**
+   * @brief Keeps current treeSearch state at next iteration the entire tree
+   * does not have to be computed and at most only one midpoint will be
+   * added to each Trace.
+   */
+  TreeBuffer treeBuffer_;
 
   /**
    * @brief Filters the TriangleSet and removes all unwanted triangles.
@@ -107,14 +115,6 @@ class WayComputer {
                       const Params::WayComputer::Search &params) const;
 
   /**
-   * @brief Returns the average edge length of the Way and the Trace \a *trace
-   * (if any).
-   *
-   * @param[in] trace
-   */
-  inline double avgEdgeLen(const Trace *trace) const;
-
-  /**
    * @brief Finds all possible next Edges according to all metrics and thresholds.
    * Uses \a params as its parameters.
    *
@@ -144,16 +144,16 @@ class WayComputer {
    * @brief Performs a limited-height heuristic-ponderated tree search and
    * returns the index of the best possible next Edge. Uses \a params as its
    * parameters.
+   * The first element of the returned pair will be whether or not the second
+   * element is valid.
    *
-   * @param[in] nextEdges
    * @param[in] midpointsKDT
    * @param[in] edges
    * @param[in] params
    */
-  size_t treeSearch(std::vector<HeurInd> &nextEdges,
-                    const KDTree &midpointsKDT,
-                    const std::vector<Edge> &edges,
-                    const Params::WayComputer::Search &params) const;
+  std::pair<bool, size_t> treeSearch(const KDTree &midpointsKDT,
+                                     const std::vector<Edge> &edges,
+                                     const Params::WayComputer::Search &params);
 
   /**
    * @brief Main function of the class, it takes all Edges and computes the best
@@ -183,9 +183,9 @@ class WayComputer {
    * @brief Takes the Delaunay triangle set and computes the Way.
    *
    * @param[in,out] triangulation
-   * @param[in] stamp
+   * @param[in] header
    */
-  void update(TriangleSet &triangulation, const ros::Time &stamp);
+  void update(TriangleSet &triangulation, const std_msgs::Header &header);
 
   /**
    * @brief Returns if the loop has been closed.

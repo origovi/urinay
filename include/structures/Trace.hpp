@@ -37,12 +37,13 @@ class Trace {
     /**
      * @brief A shared pointer to the Connection that goes before this.
      */
-    const std::shared_ptr<Connection> before;
+    std::shared_ptr<Connection> before;
 
     /**
-     * @brief Size of the Trace from this Connection
+     * @brief Original size of the Trace from this Connection.
+     * Original means from first (that may no longer be in the Trace) Edge.
      */
-    const size_t size;
+    const size_t orig_size;
 
     /**
      * @brief The heuristic of this append.
@@ -142,6 +143,12 @@ class Trace {
   size_t size() const;
 
   /**
+   * @brief Returns the ORIGINAL size of the Trace.
+   * Original means from first (that may no longer be in the Trace) Edge.
+   */
+  size_t orig_size() const;
+
+  /**
    * @brief Returns a Trace containing the Connection chain of the Connection
    * before.
    */
@@ -184,6 +191,13 @@ class Trace {
    * @param[in] edgeInd 
    */
   bool containsEdge(const size_t &edgeInd) const;
+
+  /**
+   * @brief Detaches the Connection chain from the one containing a Connection
+   * with Edge index \a edgeInd. The resulted Trace will not have the Edge
+   * index \a edgeInd.
+   */
+  void detachFrom(const size_t &edgeInd);
 
   /**
    * @brief Clears the Connection chain.

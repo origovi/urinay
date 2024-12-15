@@ -45,7 +45,6 @@ void callback_ccat(const custom_msgs::ConeWithIdArray::ConstPtr &data) {
   // Convert to Node vector
   std::vector<Node> nodes;
   nodes.reserve(data->cones.size());
-  ROS_INFO_STREAM("reading " << data->cones.size() << " cones." << std::endl);
   for (const custom_msgs::ConeWithId &c : data->cones) {
     nodes.emplace_back(c);
   }
@@ -59,18 +58,18 @@ void callback_ccat(const custom_msgs::ConeWithIdArray::ConstPtr &data) {
   TriangleSet triangles = DelaunayTri::compute(nodes);
 
   // Update the way with the new triangulation
-  wayComputer->update(triangles, data->stamp);
+  wayComputer->update(triangles, data->header);
 
   // Publish loop and write tracklimits to a file
   if (wayComputer->isLoopClosed()) {
     pubFull.publish(wayComputer->getPathLimits());
-    ROS_INFO("[urinay] Tanco loop");
+    ROS_INFO("[urinay] Loop closed!");
     std::string loopDir = params->main.package_path + "/loops";
     mkdir(loopDir.c_str(), 0777);
     wayComputer->writeWayToFile(loopDir + "/loop.unay");
     if (params->main.shutdown_on_loop_closure) {
       Time::tock("computation");  // End measuring time
-      ROS_INFO("[urinay] Tingui bon dia :)");
+      ROS_INFO("[urinay] Have a good day :)");
       ros::shutdown();
     }
   }

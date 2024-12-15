@@ -18,6 +18,7 @@
 #include "structures/Edge.hpp"
 #include "structures/Node.hpp"
 #include "structures/Vector.hpp"
+#include "structures/Trace.hpp"
 #include "utils/Params.hpp"
 #include "utils/definitions.hpp"
 #include "utils/constants.hpp"
@@ -42,10 +43,9 @@ class Way {
   std::list<Edge> path_;
 
   /**
-   * @brief The average length of all the Edge(s) stored in \a path_.
-   * This attribute will be used by WayComputer to find next Edge(s).
+   * @brief Structure to check if an Edge is already in path
    */
-  double avgEdgeLen_;
+  std::unordered_set<Edge> edgesInPath_;
 
   /**
    * @brief Points at the Edge whose midpoint is closest to the car position.
@@ -72,7 +72,9 @@ class Way {
    * @param[in] C 
    * @param[in] D 
    */
-  static bool segmentsIntersect(const Point &A, const Point &B, const Point &C, const Point &D);
+  static inline bool segmentsIntersect(const Point &A, const Point &B, const Point &C, const Point &D) {
+    return Point::ccw(A, C, D) != Point::ccw(B, C, D) and Point::ccw(A, B, C) != Point::ccw(A, B, D);
+  }
 
  public:
   /**
@@ -160,8 +162,10 @@ class Way {
    * O(n), n=this->size().
    * 
    * @param[in] e 
+   * @param[in] actTrace
+   * @param[in] edges
    */
-  bool intersectsWith(const Edge &e) const;
+  bool intersectsWith(const Edge &e, const Trace* const actTrace, const std::vector<Edge> &edges) const;
 
   /**
    * @brief Checks if the Way contains a specific Edge \a e.
@@ -200,11 +204,6 @@ class Way {
    * @param[in] way 
    */
   bool quinEhLobjetiuDeLaSevaDiresio(const Way &way) const;
-
-  /**
-   * @brief Returns the average Edge length.
-   */
-  const double &getAvgEdgeLen() const;
 
   /**
    * @brief Returns the number of midpoints ahead of the car, until end of Way.

@@ -35,9 +35,9 @@ class Visualization {
   Params::Visualization params_;
 
   /**
-   * @brief All Markers will be published with this timestamp.
+   * @brief All Markers will be published with this header.
    */
-  ros::Time stamp_;
+  std_msgs::Header lastHeader_;
 
  public:
   /**
@@ -59,12 +59,12 @@ class Visualization {
   void init(ros::NodeHandle *const nh, const Params::Visualization &params);
   
   /**
-   * @brief Sets the \a stamp_ attribute, all Markers will be published with
-   * this stamp
+   * @brief Sets the \a lastHeader_ attribute, all Markers will be published
+   * with this header.
    * 
-   * @param[in] stamp 
+   * @param[in] header 
    */
-  void setTimestamp(const ros::Time &stamp);
+  void setHeader(const std_msgs::Header &header);
 
   /**
    * @brief Method to visualize a TriangleSet.
