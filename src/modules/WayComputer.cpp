@@ -155,17 +155,6 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *ac
   std::partial_sort_copy(privilege_runner.begin(), privilege_runner.end(), nextEdges.begin(), nextEdges.end());
 }
 
-Trace WayComputer::computeBestTraceWithFinishedT(const Trace &best, const Trace &t) const {
-  // The method of choosing the best trace is as follows:
-  // 1. The longest trace wins.
-  // 2. If the size is equal, then the trace with smallest accum heuristic wins.
-  // Note that here, no trace is added to the queue.
-  if (t.size() > best.size() or (t.size() == best.size() and t.sumHeur() < best.sumHeur())) {
-    return t;
-  } else
-    return best;
-}
-
 std::pair<bool, size_t> WayComputer::treeSearch(const KDTree &midpointsKDT, const std::vector<Edge> &edges, const Params::WayComputer::Search &params) {
   std::vector<HeurInd> nextEdges;
   std::queue<Trace> cua;
@@ -192,8 +181,15 @@ std::pair<bool, size_t> WayComputer::treeSearch(const KDTree &midpointsKDT, cons
   while (not cua.empty()) {
     if (ros::WallTime::now() - searchBeginTime > ros::WallDuration(params.max_treeSearch_time)) {
       ROS_WARN("[urinay] Time limit exceeded in tree search.");
+      // Save current search state to buffer & break
+      while (not cua.empty()) {
+        this->treeBuffer_.insert(cua.front());
+        cua.pop();
+      }
+      best = this->treeBuffer_.getBestTrace();
       break;
     }
+
     Trace t = cua.front();
     cua.pop();
 
@@ -208,7 +204,7 @@ std::pair<bool, size_t> WayComputer::treeSearch(const KDTree &midpointsKDT, cons
       // Means that this trace is finished, should be considered as the "best"
       // trace AND added to tree buffer.
       this->treeBuffer_.insert(t);
-      best = this->computeBestTraceWithFinishedT(best, t);
+      best = t < best ? t : best;  // See Trace::operator<() for more info on criteria
     } else {
       // Add new possible traces to the queue
       for (const HeurInd &nextEdge : nextEdges) {

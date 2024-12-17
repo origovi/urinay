@@ -51,6 +51,12 @@ class TreeBuffer {
   void fillQueue(std::queue<Trace> &queue) const;
 
   /**
+   * @brief Returns the best Trace (according to Trace::operator<).
+   * WARNING, if empty, returns an empty Trace!
+   */
+  Trace getBestTrace() const;
+
+  /**
    * @brief Checks whether or not there is not valid data.
   */
   bool empty() const;

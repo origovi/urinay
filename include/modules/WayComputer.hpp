@@ -131,16 +131,6 @@ class WayComputer {
                      const Params::WayComputer::Search &params) const;
 
   /**
-   * @brief Computes which is the best Trace from the best previous best Trace
-   * and the candidate.
-   *
-   * @param best is the best previous Trace
-   * @param t is the candidate to best Trace
-   * @return Trace is the new best Trace
-   */
-  Trace computeBestTraceWithFinishedT(const Trace &best, const Trace &t) const;
-
-  /**
    * @brief Performs a limited-height heuristic-ponderated tree search and
    * returns the index of the best possible next Edge. Uses \a params as its
    * parameters.

@@ -114,6 +114,10 @@ void Trace::clear() {
   this->p = nullptr;
 }
 
+bool Trace::operator<(const Trace &t) const {
+  return this->size() > t.size() or (this->size() == t.size() and this->sumHeur() < t.sumHeur());
+}
+
 // Useful to print a Trace
 std::ostream &operator<<(std::ostream &os, const Trace &trace) {
   os << "T(";

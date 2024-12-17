@@ -205,6 +205,15 @@ class Trace {
   void clear();
 
   /**
+   * @brief Comparison operator used to see if the implicit object is a "better"
+   * Trace compared to parameter.
+   * The method of choosing the best trace is as follows:
+   * 1. The longest trace wins.
+   * 2. If the size is equal, then the trace with smallest accum heuristic wins.
+   */
+  bool operator<(const Trace &t) const;
+
+  /**
    * @brief Cout operator.
    * 
    * @param[in,out] os 

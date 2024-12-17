@@ -9,8 +9,6 @@ set(CMAKE_BUILD_TYPE "Release")
 find_package(catkin REQUIRED COMPONENTS roscpp std_msgs custom_msgs sensor_msgs roslib eigen_conversions)
 find_package(Eigen3 REQUIRED)
 
-generate_messages(DEPENDENCIES custom_msgs)
-
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}

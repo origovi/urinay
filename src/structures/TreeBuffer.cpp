@@ -45,6 +45,14 @@ void TreeBuffer::fillQueue(std::queue<Trace> &queue) const {
   }
 }
 
+Trace TreeBuffer::getBestTrace() const {
+  Trace best;
+  for (const Trace &t : this->tree_) {
+    if (t < best) best = t;
+  }
+  return best;
+}
+
 bool TreeBuffer::empty() const {
   return this->tree_.empty();
 }
