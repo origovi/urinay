@@ -62,10 +62,15 @@ void WayComputer::filterMidpoints(EdgeSet &edges, const TriangleSet &triangulati
 }
 
 double WayComputer::getHeuristic(const Point &actPos, const Point &nextPos, const Vector &dir, const Params::WayComputer::Search &params) const {
-  double distHeur = Point::dist(actPos, nextPos);
-
+  // 1. Angle Heuristic
   double angle = Vector(actPos, nextPos).angleWith(dir);
-  double angleHeur = -log(std::max(0.0, ((M_PI_2 - abs(angle)) / M_PI_2) - 0.2));
+  double angleHeur = sqrt(abs(angle) / M_PI_2);    // Range in [0, 1], 0->best, 1->worst
+
+  // 2. Distance Heuristic
+  double distHeur = Point::dist(actPos, nextPos);  // Range of meters, likely in [0.5, 5]
+
+  // 3. Edge len heuristic
+  // double edgeLenHeur = 
 
   return params.heur_dist_ponderation * distHeur + (1 - params.heur_dist_ponderation) * angleHeur;
 }

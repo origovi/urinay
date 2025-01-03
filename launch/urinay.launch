@@ -1,5 +1,0 @@
-<launch>
-  <node name="urinay" pkg="urinay" type="urinay_exec" output="screen" ns="/AS/P">
-    <rosparam command="load" file="$(find urinay)/config/urinay.yml" />
-  </node>
-</launch>

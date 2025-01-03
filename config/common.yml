@@ -1,0 +1,13 @@
+# I/O Topics
+input_cones_topic:              "/slam/map_with_id"
+# input_pose_topic:               "/fast_limo/state"
+input_pose_topic:               "/EKF/odometry"
+output_full_topic:              "/AS/P/pathlimits/full"
+output_partial_topic:           "/AS/P/pathlimits/partial"
+
+# Markers
+publish_markers:                true    # bool   [-]   whether or not to publish the markers.
+marker_topics:
+  triangulation:                "/AS/P/urinay/markers/triangulation"
+  midpoints:                    "/AS/P/urinay/markers/midpoints"
+  way:                          "/AS/P/urinay/markers/way"

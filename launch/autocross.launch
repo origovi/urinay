@@ -1,0 +1,6 @@
+<launch>
+  <node name="urinay" pkg="urinay" type="urinay_exec" output="screen" ns="/AS/P">
+    <rosparam command="load" file="$(find urinay)/config/common.yml" />
+    <rosparam command="load" file="$(find urinay)/config/autocross.yml" />
+  </node>
+</launch>

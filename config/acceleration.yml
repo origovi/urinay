@@ -1,0 +1,33 @@
+## Params
+
+# Filtering
+min_cone_confidence:            0.0     # float  [-]   minimum required confidence to take a cone into account.
+max_triangle_edge_len:          8.0     # double [m]   all triangles will have all edge lenghts below max_triangle_edge_len.
+min_triangle_angle:             0.35    # double [rad] all triangles with any angle below this, will be removed.
+max_dist_circum_midPoint:       10.0    # double [m]   only take into account the midpoints that have a triangle circumcenter closer than max_dist_circum_midPoint. 
+
+# Search
+max_way_horizon_size:           0       # int    [num] max horizon size of the path (max number of midpoints computer ahead of the car). 0 for infinite.
+max_search_tree_height:         5       # int    [num] max length of a path in the tree search, this is the horizon length of the program. The greater the better.
+search_radius:                  8.0     # double [m]
+max_angle_diff:                 0.65    # double [rad] maximum angle difference between points in midline. Minimum 0, maximum pi/2.
+edge_len_diff_factor:           1.0     # double [-]   [0.0, 1.0] if the path has a mean edge length of x, a midpoint belonging to an edge e will only be considered if x-this*x < length(e) <= x+x*this, the bigger this is the less restrictive
+max_search_options:             2       # int    [num] number of maximum sons of every node in the tree during the search, 2 is stable, 3 risky
+max_next_heuristic:             4.0     # double [-]
+heur_dist_ponderation:          0.0     # float  [-]   minumum 0.0, maximum 1.0. Assume heur_angle_ponderation = 1.0-this
+allow_intersection:             false   # bool   [-]   whether or not to allow path intersection (a loop in the path)
+max_treeSearch_time:            0.05    # float  [s]   maximum time that a tree search can take, otherwise, the search will be stopped and the best midpoint until then will be chosen (and appended to the path), we can assume that the overall max time will be this*num_of_midpoints_in_path_from_car_to_end
+min_distSq_between_midpoints:   1.0     # double [m]   minimum possible squared distance between two midpoints
+
+# Loop Closure
+shutdown_on_loop_closure:       false   # bool   [-]   whether or not it will shut itself down after a loop was closed.
+max_dist_loop_closure:          5.0     # double [m]   maximum distance between first and last midpoint to consider it a loop.
+max_angle_diff_loop_closure:    0.65    # double [rad] maximum angle difference between first and last midpoints. Expected to be same as max_angle_diff but it may come in hand having two separated.
+
+# Replan flag
+vital_num_midpoints:            10      # int    [num] number of midpoints that are considered "vital" from the car's position on. This is taken into account when computing the (inner) replan flag.
+
+# Fail safe(s)
+failsafe_max_way_horizon_size:  6       # int    [num] during a failsafe event, the size of the way horizon will be set to this value. To avoid undesirable effects.
+general_failsafe:               true    # bool   [-]   whether or not to allow the general fail safe to activate. This means, when no path is possible (shorter than a constant) by using no color, it will automatically increase all search parameters by a factor. It will switch back to normal function, once the path (calculated with normal parameters) is long enough.
+general_failsafe_safetyFactor:  1.4     # double [-]   when general failsafe is activated, the search parameters will be increased by a factor.
