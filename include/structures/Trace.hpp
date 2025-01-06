@@ -30,9 +30,9 @@ class Trace {
    */
   struct Connection {
     /**
-     * @brief A pointer (index) to the Edge it represents.
+     * @brief A pointer to the Edge it represents.
      */
-    const size_t edgeInd;
+    const Edge* const edge;
 
     /**
      * @brief A shared pointer to the Connection that goes before this.
@@ -40,15 +40,19 @@ class Trace {
     std::shared_ptr<Connection> before;
 
     /**
-     * @brief Original size of the Trace from this Connection.
-     * Original means from first (that may no longer be in the Trace) Edge.
+     * @brief Size of the Trace, i.e. how long is the Connection chain.
      */
-    const size_t orig_size;
+    const size_t size;
 
     /**
      * @brief The heuristic of this append.
      */
     const double heur;
+
+    /**
+     * @brief The sum of heuristics of the Connection chain.
+     */
+    const double sumHeur;
 
     /**
      * @brief The average Edge length of all the Trace.
@@ -64,20 +68,19 @@ class Trace {
     /**
      * @brief Construct a new Connection object.
      * 
-     * @param[in] edgeInd 
+     * @param[in] edge 
      * @param[in] heur 
-     * @param[in] edgeLen 
      * @param[in] loopClosed 
      * @param[in] before 
      */
-    Connection(const size_t &edgeInd, const double &heur, const double &edgeLen, const bool &loopClosed, std::shared_ptr<Connection> before);
+    Connection(const Edge* const edge, const double &heur, const bool &loopClosed, std::shared_ptr<Connection> before);
 
     /**
-     * @brief Returns if there is \a _edgeInd in the Connection chain.
+     * @brief Returns if there is \a _edge in the Connection chain.
      * 
-     * @param[in] _edgeInd 
+     * @param[in] _edge 
      */
-    bool containsEdge(const size_t &_edgeInd) const;
+    bool containsEdge(const Edge &_edge) const;
 
     /**
      * @brief Cout operator.
@@ -89,7 +92,7 @@ class Trace {
       if (conn.before != nullptr) {
         os << *(conn.before);
       }
-      return os << conn.edgeInd << " -> ";
+      return os << *conn.edge << " -> ";
     }
   };
 
@@ -115,22 +118,21 @@ class Trace {
   /**
    * @brief Construct a new Trace object and the first Connection object.
    * 
-   * @param[in] edgeInd 
+   * @param[in] edge 
    * @param[in] heur 
-   * @param[in] edgeLen 
    * @param[in] loopClosed 
+   * @param[in] previous represents the previous Trace, this new will extend
    */
-  Trace(const size_t &edgeInd, const double &heur, const double &edgeLen, const bool &loopClosed = false);
+  Trace(const Edge &edge, const double &heur, const bool &loopClosed, const Trace &previous = Trace());
 
   /**
    * @brief Appends an Edge as a Connection with the following data.
    * 
-   * @param[in] edgeInd 
+   * @param[in] edge 
    * @param[in] heur 
-   * @param[in] edgeLen 
    * @param[in] loopClosed 
    */
-  void addEdge(const size_t &edgeInd, const double &heur, const double &edgeLen, const bool &loopClosed = false);
+  void addEdge(const Edge &edge, const double &heur, const bool &loopClosed = false);
 
   /**
    * @brief Consults if the Trace is empty.
@@ -139,68 +141,66 @@ class Trace {
 
   /**
    * @brief Returns the size of the Trace, i.e. how long is the Connection chain.
+   * Complexity: O(1).
    */
   size_t size() const;
 
   /**
-   * @brief Returns the ORIGINAL size of the Trace.
-   * Original means from first (that may no longer be in the Trace) Edge.
-   */
-  size_t orig_size() const;
-
-  /**
    * @brief Returns a Trace containing the Connection chain of the Connection
    * before.
+   * Complexity: O(1).
    */
   Trace before() const;
 
   /**
    * @brief Returns a Trace containing the first (initial) Connection.
+   * Complexity: O(n), being n the number of Connections in the chain.
    */
   Trace first() const;
 
   /**
-   * @brief Returns the last Edge index.
+   * @brief Returns the last Edge.
+   * Complexity: O(1).
    */
-  const size_t &edgeInd() const;
+  const Edge &edge() const;
 
   /**
    * @brief Returns the last Connection heuristic.
+   * Complexity: O(1).
    */
   const double &heur() const;
 
   /**
    * @brief Returns the last Connection's average Edge length.
+   * If empty, returns 0.
+   * Complexity: O(1).
    */
   double avgEdgeLen() const;
 
   /**
    * @brief Returns whether of not the loop is closed from last
    * Connection or before.
+   * Complexity: O(1).
    */
   bool isLoopClosed() const;
 
   /**
    * @brief Returns the sum of heuristics of the Connection chain.
+   * If empty, returns infinity.
+   * Complexity: O(1).
    */
   double sumHeur() const;
 
   /**
-   * @brief Checks if there is any Connection with Edge index \a edgeInd.
+   * @brief Checks if there is any Connection with Edge \a edge.
+   * Complexity: O(n), being n the number of Connections in the chain.
    * 
-   * @param[in] edgeInd 
+   * @param[in] edge 
    */
-  bool containsEdge(const size_t &edgeInd) const;
+  bool containsEdge(const Edge &edge) const;
 
   /**
-   * @brief Detaches the Connection chain from the one containing a Connection
-   * with Edge index \a edgeInd. The resulted Trace will not have the Edge
-   * index \a edgeInd.
-   */
-  void detachFrom(const size_t &edgeInd);
-
-  /**
-   * @brief Clears the Connection chain.
+   * @brief Clears the Connection chain. O(1).
    */
   void clear();
 

@@ -21,7 +21,7 @@
 
 #include "modules/Visualization.hpp"
 #include "structures/Trace.hpp"
-#include "structures/TreeBuffer.hpp"
+#include "structures/TraceBuffer.hpp"
 #include "structures/Vector.hpp"
 #include "structures/Way.hpp"
 #include "utils/KDTree.hpp"
@@ -79,13 +79,6 @@ class WayComputer {
   bool localTfValid_ = false;
 
   /**
-   * @brief Keeps current treeSearch state at next iteration the entire tree
-   * does not have to be computed and at most only one midpoint will be
-   * added to each Trace.
-   */
-  TreeBuffer treeBuffer_;
-
-  /**
    * @brief Filters the TriangleSet and removes all unwanted triangles.
    *
    * @param[in,out] triangulation
@@ -131,19 +124,21 @@ class WayComputer {
                      const Params::WayComputer::Search &params) const;
 
   /**
-   * @brief Performs a limited-height heuristic-ponderated tree search and
-   * returns the index of the best possible next Edge. Uses \a params as its
-   * parameters.
-   * The first element of the returned pair will be whether or not the second
-   * element is valid.
+   * @brief Performs a limited-height heuristic-ponderated tree search. Uses
+   * \a params as its parameters.
+   * In other words, makes one step of the tree search and updates all traces
+   * of the TraceBuffer.
+   * The returned value represents if the search can continue or not.
    *
+   * @param[in, out] traceBuffer
    * @param[in] midpointsKDT
    * @param[in] edges
    * @param[in] params
    */
-  std::pair<bool, size_t> treeSearch(const KDTree &midpointsKDT,
-                                     const std::vector<Edge> &edges,
-                                     const Params::WayComputer::Search &params);
+  bool treeSearch(TraceBuffer &traceBuffer,
+                  const KDTree &midpointsKDT,
+                  const std::vector<Edge> &edges,
+                  const Params::WayComputer::Search &params);
 
   /**
    * @brief Main function of the class, it takes all Edges and computes the best

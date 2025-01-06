@@ -84,16 +84,16 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *ac
 
   // Set actual and last position
   if (actTrace and not actTrace->empty()) {
-    actEdge = &edges[actTrace->edgeInd()];
-    actPos = edges[actTrace->edgeInd()].midPoint();
+    actEdge = &actTrace->edge();
+    actPos = actEdge->midPoint();
     if (actTrace->size() >= 2) {
-      lastPos = edges[actTrace->before().edgeInd()].midPoint();
+      lastPos = actTrace->before().edge().midPoint();
     }
   }
   if (not this->way_.empty()) {
     if (not actEdge) {
       actEdge = &this->way_.back();
-      actPos = this->way_.back().midPoint();
+      actPos = actEdge->midPoint();
       if (this->way_.size() >= 2) {
         lastPos = this->way_.beforeBack().midPoint();
       }
@@ -122,22 +122,22 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *ac
       nextPossibleEdge == *actEdge or
 
       // 2. Remove any edge whose distance with the last is too small
-      Point::distSq(actPos, nextPossibleEdge.midPoint()) < params.min_distSq_between_midpoints or
+      // Point::distSq(actPos, nextPossibleEdge.midPoint()) < params.min_distSq_between_midpoints or
 
       // 3. Remove any edge whose midpoint create an angle too closed with last one
       abs(dir.angleWith(Vector(actPos, nextPossibleEdge.midPoint()))) > params.max_angle_diff or
 
       // 4. [Only before appending the edge that closes the loop] Remove any edge that is already contained in the path but is not the one that closes the loop
-      (not this->way_.closesLoopWith(nextPossibleEdge) and (not actTrace or not actTrace->isLoopClosed()) and this->way_.containsEdge(nextPossibleEdge)) or
+      (not this->way_.closesLoopWith(nextPossibleEdge, actTrace) and (not actTrace or not actTrace->isLoopClosed()) and ((actTrace and actTrace->containsEdge(nextPossibleEdge)) or this->way_.containsEdge(nextPossibleEdge))) or
 
       // 5. Remove any edge whose midpoint and lastPos are in the same side of actEdge (avoid bouncing on a track limit)
       ((this->way_.size() >= 2 or actTrace) and Vector::pointBehind(actEdge->midPoint(), lastPos, actEdge->normal()) == Vector::pointBehind(actEdge->midPoint(), nextPossibleEdge.midPoint(), actEdge->normal())) or
 
       // 6. Remove any edge whose length is too big or too small compared to the average edge length of the way
-      (actTrace and (nextPossibleEdge.len < (1 - params.edge_len_diff_factor) * actTrace->avgEdgeLen() or nextPossibleEdge.len > (1 + params.edge_len_diff_factor) * actTrace->avgEdgeLen())) or
+      // (actTrace and (nextPossibleEdge.len < (1 - params.edge_len_diff_factor) * actTrace->avgEdgeLen() or nextPossibleEdge.len > (1 + params.edge_len_diff_factor) * actTrace->avgEdgeLen())) or
 
       // 7. [If not allow_intersection, only before closing the loop] Remove any Edge which appended would create an intersection
-      (not params.allow_intersection and (not actTrace or not actTrace->isLoopClosed()) and not this->way_.closesLoopWith(nextPossibleEdge) and this->way_.intersectsWith(nextPossibleEdge, actTrace, edges)));
+      (not params.allow_intersection and (not actTrace or not actTrace->isLoopClosed()) and not this->way_.closesLoopWith(nextPossibleEdge, actTrace) and this->way_.intersectsWith(nextPossibleEdge, actTrace)));
 
     if (removeConditions)
       it = nextPossibleEdges.erase(it);
@@ -160,29 +160,44 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *ac
   std::partial_sort_copy(privilege_runner.begin(), privilege_runner.end(), nextEdges.begin(), nextEdges.end());
 }
 
-std::pair<bool, size_t> WayComputer::treeSearch(const KDTree &midpointsKDT, const std::vector<Edge> &edges, const Params::WayComputer::Search &params) {
+bool WayComputer::treeSearch(TraceBuffer &traceBuffer, const KDTree &midpointsKDT, const std::vector<Edge> &edges, const Params::WayComputer::Search &params) {
   std::vector<HeurInd> nextEdges;
-  std::queue<Trace> cua;
   
-  if (this->treeBuffer_.empty()) {
+  if (traceBuffer.empty()) {
     // Get first set of possible Edges
     this->findNextEdges(nextEdges, nullptr, midpointsKDT, edges, params);
-    if (nextEdges.empty()) return {false, 0};
+    if (nextEdges.empty()) return false;
     for (const HeurInd &nextEdge : nextEdges) {
       bool closesLoop = this->way_.closesLoopWith(edges[nextEdge.second]);
-      cua.emplace(nextEdge.second, nextEdge.first, edges[nextEdge.second].len, closesLoop);
+      traceBuffer.emplace_back(edges[nextEdge.second], nextEdge.first, closesLoop);
     }
-  } else {
-    this->treeBuffer_.fillQueue(cua);
-    this->treeBuffer_.clear();
   }
 
-  Trace best = cua.front();
+  // // This loop will realize the tree search and get the longest (& best) path.
+  // // The loop will stop if the tree search is completed or a time limit has
+  // // been exceeded.
+  // ros::WallTime searchBeginTime = ros::WallTime::now();
+  bool didSth = false;
+  auto it_buff = traceBuffer.begin();
+  std::cout << "size " << traceBuffer.size() << std::endl;
+  while (it_buff != traceBuffer.end()) {
+    Trace &t = *it_buff;  // Reference to current iterated trace
 
-  // This loop will realize the tree search and get the longest (& best) path.
-  // The loop will stop if the tree search is completed or a time limit has
-  // been exceeded.
-  ros::WallTime searchBeginTime = ros::WallTime::now();
+    this->findNextEdges(nextEdges, &t, midpointsKDT, edges, params);
+
+    for (const HeurInd &nextEdge : nextEdges) {
+      const Edge &e = edges[nextEdge.second];
+      traceBuffer.emplace(it_buff, e, nextEdge.first, this->way_.closesLoopWith(e, &t), t);
+    }
+
+    if (!nextEdges.empty()) {
+      it_buff = traceBuffer.erase(it_buff);
+      didSth = true;
+    } else it_buff++;
+  }
+  return didSth;
+
+  /*
   while (not cua.empty()) {
     if (ros::WallTime::now() - searchBeginTime > ros::WallDuration(params.max_treeSearch_time)) {
       ROS_WARN("[urinay] Time limit exceeded in tree search.");
@@ -225,6 +240,7 @@ std::pair<bool, size_t> WayComputer::treeSearch(const KDTree &midpointsKDT, cons
   size_t nextEdgeInd = best.first().edgeInd();
   this->treeBuffer_.update(nextEdgeInd);
   return {true, nextEdgeInd};
+  */
 }
 
 void WayComputer::computeWay(const std::vector<Edge> &edges, const Params::WayComputer::Search &params) {
@@ -244,21 +260,29 @@ void WayComputer::computeWay(const std::vector<Edge> &edges, const Params::WayCo
 
   // Main outer loop, every iteration of this loop will involve adding one
   // midpoint to the path.
-  while (ros::ok() and (!params.max_way_horizon_size or this->way_.sizeAheadOfCar() <= params.max_way_horizon_size)) {
+  TraceBuffer traceBuffer(params);
+  while (ros::ok() and (!params.max_way_horizon_size or traceBuffer.height() <= params.max_way_horizon_size)) {
     // Perform tree search and break the loop if no next edges are found
-    std::pair<bool, size_t> nextEdgeIndP = this->treeSearch(midpointsKDT, edges, params);
-    if (not nextEdgeIndP.first) break;
+    // std::cout << "NEW ITER" << std::endl;
+    bool canContinue = this->treeSearch(traceBuffer, midpointsKDT, edges, params);
+    if (not canContinue) break;
 
-    // Append the new Edge
-    this->way_.addEdge(edges[nextEdgeIndP.second]);
+    // // Append the new Edge
+    // this->way_.addEdge(edges[nextEdgeIndP.second]);
 
     // Check for loop closure
-    if (this->way_.closesLoop()) {
-      this->wayToPublish_ = this->way_.restructureClosure();
-      this->isLoopClosed_ = true;
-      return;
-    }
+    // if (this->way_.closesLoop()) {
+    //   this->wayToPublish_ = this->way_.restructureClosure();
+    //   this->isLoopClosed_ = true;
+    //   return;
+    // }
+
+    // Prune buffer
+    traceBuffer.prune();
+
+    traceBuffer.newStep();
   }
+  this->way_.addTrace(traceBuffer.bestTrace());
   this->isLoopClosed_ = false;
   this->wayToPublish_ = this->way_;
 }
@@ -321,13 +345,11 @@ void WayComputer::update(TriangleSet &triangulation, const std_msgs::Header &hea
   // #5: Perform the search through the midpoints in order to obtain a way
   //     using normal parameters.
   this->computeWay(edgeVec, this->params_.search);
-  this->treeBuffer_.clear();
 
   // #6: Check failsafe(s)
   if (this->params_.general_failsafe and this->way_.sizeAheadOfCar() < MIN_FAILSAFE_WAY_SIZE and !this->isLoopClosed_) {
     ROS_WARN("[urinay] GENERAL FAILSAFE ACTIVATED!");
     this->computeWay(edgeVec, this->generalFailsafe_);
-    this->treeBuffer_.clear();
   }
 
   // #7: Visualize

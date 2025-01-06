@@ -37,7 +37,8 @@ class Params {
     double general_failsafe_safetyFactor;
     struct Search {
       int max_way_horizon_size;
-      int max_search_tree_height;
+      int best_search_options_to_keep;
+      float prune_same_height_heur_factor;
       double search_radius, max_angle_diff, edge_len_diff_factor;
       int max_search_options;
       double max_next_heuristic;
@@ -45,6 +46,7 @@ class Params {
       bool allow_intersection;
       float max_treeSearch_time;
       double min_distSq_between_midpoints;
+      int extra_tree_height_closure;
     } search;
     struct Way {
       double max_dist_loop_closure;

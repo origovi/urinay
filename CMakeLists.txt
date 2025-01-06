@@ -4,7 +4,7 @@ project(urinay)
 add_compile_options(-std=c++14)
 
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -Ofast")
-set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_BUILD_TYPE "Debug")
 
 find_package(catkin REQUIRED COMPONENTS roscpp std_msgs custom_msgs sensor_msgs roslib eigen_conversions)
 find_package(Eigen3 REQUIRED)
@@ -27,7 +27,7 @@ add_library(${PROJECT_NAME}
   src/structures/Circle.cpp
   src/structures/Triangle.cpp
   src/structures/Trace.cpp
-  src/structures/TreeBuffer.cpp
+  src/structures/TraceBuffer.cpp
   src/structures/Vector.cpp
   src/structures/Way.cpp
   src/modules/DelaunayTri.cpp

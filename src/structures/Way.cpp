@@ -77,6 +77,19 @@ void Way::addEdge(const Edge &edge) {
   if (this->path_.size() == 1) closestToCarElem_ = this->path_.cbegin();
 }
 
+void Way::addTrace(const Trace &t) {
+  std::vector<const Edge*> bufferToReverse;
+  bufferToReverse.reserve(t.size());
+  // Save all edges first to a buffer
+  for (Trace aux = t; !aux.empty(); aux = aux.before()) {
+    bufferToReverse.push_back(&aux.edge());
+  }
+  // Iterate the buffer in reverse and add to Way
+  for (auto it = bufferToReverse.crbegin(); it != bufferToReverse.crend(); it++) {
+    this->addEdge(*(*it));
+  }
+}
+
 void Way::trimByLocal() {
   if (this->size() < 2) return;
 
@@ -102,11 +115,14 @@ bool Way::closesLoop() const {
   return this->size() >= MIN_LOOP_SIZE and Point::distSq(this->front().midPoint(), this->back().midPoint()) <= params_.max_dist_loop_closure * params_.max_dist_loop_closure;
 }
 
-bool Way::closesLoopWith(const Edge &e, const Point *lastPosInTrace) const {
-  Point actPos = lastPosInTrace ? *lastPosInTrace : this->back().midPoint();
+bool Way::closesLoopWith(const Edge &e, const Trace* const t) const {
+  size_t t_size = (!t or t->empty()) ? 0 : t->size();
+  if (t_size == 0 and this->empty()) return false;
+
+  Point actPos = (!t or t->empty()) ? this->back().midPoint() : t->edge().midPoint();
   return
       // Must have a minimum size
-      this->size() + 1 >= MIN_LOOP_SIZE and
+      this->size() + t_size + 1 >= MIN_LOOP_SIZE and  // not precisely correct
       // Distance conditions are met
       Point::distSq(this->front().midPoint(), e.midPoint()) <= params_.max_dist_loop_closure * params_.max_dist_loop_closure and
       // Check closure angle with first point
@@ -144,21 +160,21 @@ Way Way::restructureClosure() const {
   return res;
 }
 
-bool Way::intersectsWith(const Edge &e, const Trace* const actTrace, const std::vector<Edge> &edges) const {
+bool Way::intersectsWith(const Edge &e, const Trace* const actTrace) const {
   size_t trace_size = actTrace ? actTrace->size() : 0;
   if (this->size() + trace_size < 3) return false;
   Point s1p1, s1p2;
   const Point s2p1 = e.midPoint();
-  const Point s2p2 = actTrace ? edges[actTrace->edgeInd()].midPoint() : this->back().midPoint();
+  const Point s2p2 = actTrace ? actTrace->edge().midPoint() : this->back().midPoint();
 
   // Check if intersects with Trace
   if (actTrace) {
     Trace aux = actTrace->before();
     if (!aux.empty())
-      s1p1 = edges[aux.edgeInd()].midPoint();
+      s1p1 = aux.edge().midPoint();
     while (aux.size() >= 2) {
       aux = aux.before();
-      s1p2 = edges[aux.edgeInd()].midPoint();
+      s1p2 = aux.edge().midPoint();
       if (this->segmentsIntersect(s1p1, s1p2, s2p1, s2p2)) return true;
       s1p1 = s1p2;
     }

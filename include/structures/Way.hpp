@@ -129,19 +129,26 @@ class Way {
   void addEdge(const Edge &edge);
 
   /**
+   * @brief Appends a Trace (all of its Edges) to the back of the Way.
+   * 
+   * @param[in] t 
+   */
+  void addTrace(const Trace &t);
+
+  /**
    * @brief Trims the Way so that all Edge(s) coming after the closest to the
    * car are removed.
    */
   void trimByLocal();
 
   /**
-   * @brief Checks if the Way closes loop when \a e is appended to the Way.
-   * If \a lastPosInTrace is not NULL, it is considered last Way midpoint.
+   * @brief Checks if the Way closes loop when \a e is appended to the path
+   * created by the implicit Way and the Trace \a t.
    * 
    * @param[in] e 
-   * @param[in] lastPosInTrace 
+   * @param[in] t 
    */
-  bool closesLoopWith(const Edge &e, const Point *lastPosInTrace = nullptr) const;
+  bool closesLoopWith(const Edge &e, const Trace* const t = nullptr) const;
 
   /**
    * @brief Makes a copy making sure that:
@@ -163,9 +170,8 @@ class Way {
    * 
    * @param[in] e 
    * @param[in] actTrace
-   * @param[in] edges
    */
-  bool intersectsWith(const Edge &e, const Trace* const actTrace, const std::vector<Edge> &edges) const;
+  bool intersectsWith(const Edge &e, const Trace* const actTrace) const;
 
   /**
    * @brief Checks if the Way contains a specific Edge \a e.
