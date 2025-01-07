@@ -44,7 +44,6 @@ class Params {
       double max_next_heuristic;
       float heur_dist_ponderation;
       bool allow_intersection;
-      float max_treeSearch_time;
       double min_distSq_between_midpoints;
       int extra_tree_height_closure;
     } search;

@@ -122,7 +122,7 @@ bool Way::closesLoopWith(const Edge &e, const Trace* const t) const {
   Point actPos = (!t or t->empty()) ? this->back().midPoint() : t->edge().midPoint();
   return
       // Must have a minimum size
-      this->size() + t_size + 1 >= MIN_LOOP_SIZE and  // not precisely correct
+      this->size() + t_size >= MIN_LOOP_SIZE and  // not precisely correct
       // Distance conditions are met
       Point::distSq(this->front().midPoint(), e.midPoint()) <= params_.max_dist_loop_closure * params_.max_dist_loop_closure and
       // Check closure angle with first point

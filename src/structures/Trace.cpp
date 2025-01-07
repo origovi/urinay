@@ -16,7 +16,8 @@ Trace::Connection::Connection(const Edge* const edge, const double &heur, const 
     : edge(edge), before(before), heur(heur),
       sumHeur(before ? before->sumHeur + heur : heur), size(before ? (before->size + 1) : 1),
       avgEdgeLen(before ? before->avgEdgeLen + ((edge->len - before->avgEdgeLen) / (before->size + 1)) : edge->len),
-      loopClosed(before ? (before->loopClosed or loopClosed) : loopClosed) {}
+      loopClosed(before ? (before->loopClosed or loopClosed) : loopClosed),
+      connectionsSinceLoopClosed(before && before->connectionsSinceLoopClosed >= 1 ? before->connectionsSinceLoopClosed + 1 : (loopClosed ? 1 : 0)) {}
 
 bool Trace::Connection::containsEdge(const Edge &_edge) const {
   return *edge == _edge || (before ? before->containsEdge(_edge) : false);
@@ -95,6 +96,21 @@ bool Trace::containsEdge(const Edge &edge) const {
     return false;
   else
     return this->p->containsEdge(edge);
+}
+
+uint32_t Trace::connectionsSinceLoopClosed() const {
+  if (empty())
+    return 0;
+  else
+    return this->p->connectionsSinceLoopClosed;
+}
+
+Trace Trace::trimLoopClosure() const {
+  Trace res = *this;
+  while (!res.empty() and res.connectionsSinceLoopClosed() >= 2) {
+    res = res.before();
+  }
+  return res;
 }
 
 void Trace::clear() {

@@ -15,38 +15,13 @@
 /* ----------------------------- Public Methods ----------------------------- */
 
 TraceBuffer::TraceBuffer(const Params::WayComputer::Search &params)
-  : params_(params) {
-    this->currentStep_ = 0;
-}
-
-// void TraceBuffer::update(const size_t &lastEdgeInd) {
-//   auto it = this->buffer_.begin();
-
-//   while (it != this->buffer_.end()) {
-//     if (not it->containsEdge(lastEdgeInd) or it->size() == 1) {
-//       it = this->buffer_.erase(it);
-//     }
-//     else {
-//       it++;
-//     }
-//   }
-  
-//   // WARNING: Assuming all traces in this->buffer_ come from SAME real tree.
-//   // (not having inserted traces with different origin)
-//   for (Trace &t : this->buffer_) {
-//     t.detachFrom(lastEdgeInd);
-//   }
-// }
-
-void TraceBuffer::newStep() const {
-  this->currentStep_++;
-}
+  : params_(params) {}
 
 void TraceBuffer::prune() {
 
   Trace best = this->bestTrace();
 
-  // 1. Remove shorter traces
+  // 1. Remove shorter traces and very bad ones
   auto it = this->begin();
   while (it != this->end()) {
     if (it->size() < best.size() or it->sumHeur()*params_.prune_same_height_heur_factor > best.sumHeur()) {
@@ -55,12 +30,6 @@ void TraceBuffer::prune() {
       it++;
     }
   }
-
-  // //DEBUG
-  // std::cout << "FROM: ";
-  // for (const Trace &t : *this)  {
-  //   std::cout << t.size() << ' ' << t.sumHeur() << std::endl;
-  // }
 
   // // 2. Keep k best traces
   // 2.1. We construct a max heap to keep the k best
@@ -83,12 +52,6 @@ void TraceBuffer::prune() {
   for (const Trace &t : max_heap) {
     this->push_back(t);
   }
-
-  // std::cout << "TO: ";
-  // for (const Trace &t : *this)  {
-  //   std::cout << t.size() << ' ' << t.sumHeur() << std::endl;
-  // }
-
 }
 
 Trace TraceBuffer::bestTrace() const {

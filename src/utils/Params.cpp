@@ -43,7 +43,6 @@ Params::Params(ros::NodeHandle *const nh) {
   nh->param<double>(ns + "/max_next_heuristic", wayComputer.search.max_next_heuristic, 3.0);
   nh->param<float>(ns + "/heur_dist_ponderation", wayComputer.search.heur_dist_ponderation, 0.6);
   nh->param<bool>(ns + "/allow_intersection", wayComputer.search.allow_intersection, false);
-  nh->param<float>(ns + "/max_treeSearch_time", wayComputer.search.max_treeSearch_time, 0.05);
   nh->param<double>(ns + "/min_distSq_between_midpoints", wayComputer.search.min_distSq_between_midpoints, 0.09);
   nh->param<int>(ns + "/extra_tree_height_closure", wayComputer.search.extra_tree_height_closure, 7);
 

@@ -122,7 +122,7 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *ac
       nextPossibleEdge == *actEdge or
 
       // 2. Remove any edge whose distance with the last is too small
-      // Point::distSq(actPos, nextPossibleEdge.midPoint()) < params.min_distSq_between_midpoints or
+      Point::distSq(actPos, nextPossibleEdge.midPoint()) < params.min_distSq_between_midpoints or
 
       // 3. Remove any edge whose midpoint create an angle too closed with last one
       abs(dir.angleWith(Vector(actPos, nextPossibleEdge.midPoint()))) > params.max_angle_diff or
@@ -134,13 +134,15 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *ac
       ((this->way_.size() >= 2 or actTrace) and Vector::pointBehind(actEdge->midPoint(), lastPos, actEdge->normal()) == Vector::pointBehind(actEdge->midPoint(), nextPossibleEdge.midPoint(), actEdge->normal())) or
 
       // 6. Remove any edge whose length is too big or too small compared to the average edge length of the way
-      // (actTrace and (nextPossibleEdge.len < (1 - params.edge_len_diff_factor) * actTrace->avgEdgeLen() or nextPossibleEdge.len > (1 + params.edge_len_diff_factor) * actTrace->avgEdgeLen())) or
+      (actTrace and (nextPossibleEdge.len < (1 - params.edge_len_diff_factor) * actTrace->avgEdgeLen() or nextPossibleEdge.len > (1 + params.edge_len_diff_factor) * actTrace->avgEdgeLen())) or
 
       // 7. [If not allow_intersection, only before closing the loop] Remove any Edge which appended would create an intersection
       (not params.allow_intersection and (not actTrace or not actTrace->isLoopClosed()) and not this->way_.closesLoopWith(nextPossibleEdge, actTrace) and this->way_.intersectsWith(nextPossibleEdge, actTrace)));
 
-    if (removeConditions)
+    if (removeConditions) {
       it = nextPossibleEdges.erase(it);
+      // std::cout << "discarded " << nextPossibleEdge << std::endl;
+    }
     else
       it++;
   }
@@ -173,13 +175,10 @@ bool WayComputer::treeSearch(TraceBuffer &traceBuffer, const KDTree &midpointsKD
     }
   }
 
-  // // This loop will realize the tree search and get the longest (& best) path.
-  // // The loop will stop if the tree search is completed or a time limit has
-  // // been exceeded.
-  // ros::WallTime searchBeginTime = ros::WallTime::now();
+  // This loop will realize one tree search step, i.e. extend each Trace
+  // by one and add the extensions to the 'queue' list.
   bool didSth = false;
   auto it_buff = traceBuffer.begin();
-  std::cout << "size " << traceBuffer.size() << std::endl;
   while (it_buff != traceBuffer.end()) {
     Trace &t = *it_buff;  // Reference to current iterated trace
 
@@ -196,56 +195,20 @@ bool WayComputer::treeSearch(TraceBuffer &traceBuffer, const KDTree &midpointsKD
     } else it_buff++;
   }
   return didSth;
-
-  /*
-  while (not cua.empty()) {
-    if (ros::WallTime::now() - searchBeginTime > ros::WallDuration(params.max_treeSearch_time)) {
-      ROS_WARN("[urinay] Time limit exceeded in tree search.");
-      // Save current search state to buffer & break
-      while (not cua.empty()) {
-        this->treeBuffer_.insert(cua.front());
-        cua.pop();
-      }
-      best = this->treeBuffer_.getBestTrace();
-      break;
-    }
-
-    Trace t = cua.front();
-    cua.pop();
-
-    bool trace_at_max_height = false;
-
-    if (t.size() >= params.max_search_tree_height)
-      trace_at_max_height = true;
-    else
-      this->findNextEdges(nextEdges, &t, midpointsKDT, edges, params);
-
-    if (trace_at_max_height or nextEdges.empty()) {
-      // Means that this trace is finished, should be considered as the "best"
-      // trace AND added to tree buffer.
-      this->treeBuffer_.insert(t);
-      best = t < best ? t : best;  // See Trace::operator<() for more info on criteria
-    } else {
-      // Add new possible traces to the queue
-      for (const HeurInd &nextEdge : nextEdges) {
-        Point actPos = edges[t.edgeInd()].midPoint();
-        bool closesLoop = this->way_.closesLoopWith(edges[nextEdge.second], &actPos);
-        Trace aux = t;
-        aux.addEdge(nextEdge.second, nextEdge.first, edges[nextEdge.second].len, closesLoop);
-        cua.push(aux);
-      }
-    }
-  }
-  // The next point will be the FIRST point of the best path
-  size_t nextEdgeInd = best.first().edgeInd();
-  this->treeBuffer_.update(nextEdgeInd);
-  return {true, nextEdgeInd};
-  */
 }
 
 void WayComputer::computeWay(const std::vector<Edge> &edges, const Params::WayComputer::Search &params) {
   // Get rid of all edges from closest to car (included) to last
   this->way_.trimByLocal();
+
+  if (this->way_.closesLoop()) {
+    ROS_WARN("[urinay] Loop already closed, this should only happen if the "
+             "nearest midpoint to the car is the one that closes the loop and "
+             "hence no computation is needed.");
+    this->isLoopClosed_ = true;
+    this->wayToPublish_ = this->way_.restructureClosure();
+    return;
+  }
 
   // Build a k-d tree of all midpoints so is cheaper to find closest points
   std::vector<Point> midpoints(edges.size());
@@ -263,28 +226,23 @@ void WayComputer::computeWay(const std::vector<Edge> &edges, const Params::WayCo
   TraceBuffer traceBuffer(params);
   while (ros::ok() and (!params.max_way_horizon_size or traceBuffer.height() <= params.max_way_horizon_size)) {
     // Perform tree search and break the loop if no next edges are found
-    // std::cout << "NEW ITER" << std::endl;
     bool canContinue = this->treeSearch(traceBuffer, midpointsKDT, edges, params);
-    if (not canContinue) break;
+    
+    // Stop search because no more Traces can be extended
+    if (!canContinue) break;
 
-    // // Append the new Edge
-    // this->way_.addEdge(edges[nextEdgeIndP.second]);
-
-    // Check for loop closure
-    // if (this->way_.closesLoop()) {
-    //   this->wayToPublish_ = this->way_.restructureClosure();
-    //   this->isLoopClosed_ = true;
-    //   return;
-    // }
+    // Stop search becayse loop has been closed with enough confidence
+    if (traceBuffer.bestTrace().connectionsSinceLoopClosed() >= params.extra_tree_height_closure + 1) {
+      break;
+    }
 
     // Prune buffer
     traceBuffer.prune();
-
-    traceBuffer.newStep();
   }
-  this->way_.addTrace(traceBuffer.bestTrace());
-  this->isLoopClosed_ = false;
-  this->wayToPublish_ = this->way_;
+  // Now append best trace to way
+  this->way_.addTrace(traceBuffer.bestTrace().trimLoopClosure());
+  this->isLoopClosed_ = this->way_.closesLoop();
+  this->wayToPublish_ = this->isLoopClosed_ ? this->way_.restructureClosure() : this->way_;
 }
 
 /* ----------------------------- Public Methods ----------------------------- */

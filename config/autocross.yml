@@ -8,7 +8,7 @@ max_dist_circum_midPoint:       10.0    # double [m]   only take into account th
 
 # Search
 max_way_horizon_size:           0       # int    [num] max horizon size of the path (max number of midpoints computer ahead of the car). 0 for infinite.
-best_search_options_to_keep:    10      # int    [num] during the search, how many "best" different paths is allowed to keep in memory.
+best_search_options_to_keep:    50      # int    [num] during the search, how many "best" different paths is allowed to keep in memory.
 prune_same_height_heur_factor:  0.5     # float  [-]   during the search, traces will be pruned if: best.height > trace.height or trace.sumHeur*THIS > best.sumHeur.
 search_radius:                  5.0     # double [m]
 max_angle_diff:                 0.65    # double [rad] maximum angle difference between points in midline. Minimum 0, maximum pi/2.
@@ -17,7 +17,6 @@ max_search_options:             2       # int    [num] number of maximum childre
 max_next_heuristic:             1.0     # double [-]
 heur_dist_ponderation:          0.1     # float  [-]   minumum 0.0, maximum 1.0. Assume heur_angle_ponderation = 1.0-this.
 allow_intersection:             false   # bool   [-]   whether or not to allow path intersection (a loop in the path).
-max_treeSearch_time:            0.05    # float  [s]   maximum time that a tree search can take, otherwise, the search will be stopped and the best midpoint until then will be chosen (and appended to the path), we can assume that the overall max time will be this*num_of_midpoints_in_path_from_car_to_end.
 min_distSq_between_midpoints:   0.25    # double [m]   minimum possible squared distance between two midpoints.
 
 # Loop Closure

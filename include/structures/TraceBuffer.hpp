@@ -30,19 +30,8 @@ class TraceBuffer : public std::list<Trace> {
    */
   const Params::WayComputer::Search params_;
 
-  /**
-   * @brief Counter fot the number of search steps performed on this object.
-   */
-  mutable uint32_t currentStep_;
-
  public:
   TraceBuffer(const Params::WayComputer::Search &params);
-
-  /**
-   * @brief Increments the internal current step variable.
-   * Must be called at the end of each search step.
-   */
-  void newStep() const;
 
   /**
    * @brief Prunes the buffer by removing full Trace(s) that are far from

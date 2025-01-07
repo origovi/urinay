@@ -76,6 +76,6 @@ double Node::angleWith(const Node &n0, const Node &n1) const {
 }
 
 std::ostream &operator<<(std::ostream &os, const Node &n) {
-  os << "N(" << n.x() << ", " << n.y() << ")";
+  os << "N(" << n.id << ", (" << n.x() << ", " << n.y() << "))";
   return os;
 }

@@ -66,6 +66,11 @@ class Trace {
     const bool loopClosed;
 
     /**
+     * @brief Number of Connections since the loop was closed.
+     */
+    const uint32_t connectionsSinceLoopClosed;
+
+    /**
      * @brief Construct a new Connection object.
      * 
      * @param[in] edge 
@@ -198,6 +203,19 @@ class Trace {
    * @param[in] edge 
    */
   bool containsEdge(const Edge &edge) const;
+
+  /**
+   * @brief Returns the number of Connections in the chain since the loop was
+   * first closed.
+   * Complexity: O(1).
+   */
+  uint32_t connectionsSinceLoopClosed() const;
+
+  /**
+   * @brief Returns the same Trace but trims the 'extra' Edges after the loop
+   * has been closed.
+   */
+  Trace trimLoopClosure() const;
 
   /**
    * @brief Clears the Connection chain. O(1).
