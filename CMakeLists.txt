@@ -29,7 +29,7 @@ add_library(${PROJECT_NAME}
   src/structures/Trace.cpp
   src/structures/TraceBuffer.cpp
   src/structures/Vector.cpp
-  src/structures/Way.cpp
+  # src/structures/Way.cpp
   src/modules/DelaunayTri.cpp
   src/modules/WayComputer.cpp
   src/modules/Visualization.cpp

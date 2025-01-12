@@ -84,7 +84,7 @@ template Point &Point::operator/=<double>(const double &);
 template Point &Point::operator/=<size_t>(const size_t &);
 
 std::ostream &operator<<(std::ostream &os, const Point &p) {
-  return os << "P(" << p.x << ", " << p.y << ")\n";
+  return os << "P(" << p.x << ", " << p.y << ")";
 }
 
 Point Point::transformed(const Eigen::Affine3d &tf) const {

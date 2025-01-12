@@ -39,10 +39,10 @@ class Params {
       int max_way_horizon_size;
       int best_search_options_to_keep;
       float prune_same_height_heur_factor;
-      double search_radius, max_angle_diff, edge_len_diff_factor;
+      double search_radius, max_angle_diff, track_width_diff_factor;
       int max_search_options;
       double max_next_heuristic;
-      float heur_dist_ponderation;
+      float heur_dist_weight, heur_track_width_diff_weight;
       bool allow_intersection;
       double min_distSq_between_midpoints;
       int extra_tree_height_closure;

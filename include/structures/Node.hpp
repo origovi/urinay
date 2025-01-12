@@ -17,6 +17,7 @@
 #include <Eigen/Geometry>
 #include <cmath>
 #include <iostream>
+#include <iomanip>
 
 #include "structures/Point.hpp"
 #include "structures/Vector.hpp"

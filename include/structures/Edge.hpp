@@ -99,6 +99,14 @@ class Edge {
   Vector normal() const;
 
   /**
+   * @brief Returns the estimated track width for this particular Edge
+   * taking into account the direction.
+   * 
+   * @param[in] dir
+   */
+  double trackWidth(const Vector &dir) const;
+
+  /**
    * @brief Cout operator.
    * 
    * @param[in,out] os 

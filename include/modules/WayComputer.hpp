@@ -23,7 +23,6 @@
 #include "structures/Trace.hpp"
 #include "structures/TraceBuffer.hpp"
 #include "structures/Vector.hpp"
-#include "structures/Way.hpp"
 #include "utils/KDTree.hpp"
 #include "utils/Params.hpp"
 #include "utils/Failsafe.hpp"
@@ -49,14 +48,14 @@ class WayComputer {
   /**
    * @brief The result of the computation and last iteration's result.
    */
-  Way way_, lastWay_;
+  Trace way_, lastWay_;
 
   /**
    * @brief This Way object had to be created to solve the non-stop loop
    * calculation. It is the Way that will be published every time (for both
    * full & partial).
    */
-  Way wayToPublish_;
+  Trace wayToPublish_;
 
   /**
    * @brief Last data timestamp.
@@ -98,13 +97,15 @@ class WayComputer {
    * Uses \a params as its parameters.
    *
    * @param[in] actPos
-   * @param[in] nextPos
-   * @param[in] dir
+   * @param[in] nextEdge
+   * @param[in] actDir
+   * @param[in] actTrace
    * @param[in] params
    */
   double getHeuristic(const Point &actPos,
-                      const Point &nextPos,
-                      const Vector &dir,
+                      const Edge &nextEdge,
+                      const Vector &actDir,
+                      const Trace *actTrace,
                       const Params::WayComputer::Search &params) const;
 
   /**

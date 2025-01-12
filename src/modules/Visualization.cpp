@@ -122,7 +122,7 @@ void Visualization::visualize(const EdgeSet &edgeSet) const {
   midpointsPub.publish(ma);
 }
 
-void Visualization::visualize(const Way &way) const {
+void Visualization::visualize(const Trace &way) const {
   if (not this->params_.publish_markers) return;
   if (wayPub.getNumSubscribers() <= 0) return;
 

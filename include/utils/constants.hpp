@@ -45,3 +45,12 @@ const double SAME_MIDPOINT_DIST_THRESHOLD = 0.2;
  *    midpoint ahead. This option may be preferrable.
  */
 const uint32_t MIN_FAILSAFE_WAY_SIZE = 2;
+
+/**
+ * @brief When the car is in start position, we want the path to recalculate not
+ * from car's closest midpoint but from 0 (empty Trace). To do this we need to
+ * know if the car is in a starting position.
+ * We will recalculate path from scratch (see Trace::trimByLocal()) basically
+ * if car's outside a radius from (0,0).
+ */
+const double CAR_HASNT_MOVED_START_RADIUS = 0.3;

@@ -30,7 +30,7 @@ WayComputer *wayComputer;
 Params *params;
 
 // This is the map callback
-void callback_ccat(const custom_msgs::ConeWithIdArray::ConstPtr &data) {
+void mapCallback(const custom_msgs::ConeWithIdArray::ConstPtr &data) {
   if (not wayComputer->isLocalTfValid()) {
     ROS_WARN("[urinay] CarState not being received.");
     return;
@@ -92,7 +92,7 @@ int main(int argc, char **argv) {
   Visualization::getInstance().init(nh, params->visualization);
 
   // Subscribers & Publishers
-  ros::Subscriber subCones = nh->subscribe(params->main.input_cones_topic, 1, callback_ccat);
+  ros::Subscriber subCones = nh->subscribe(params->main.input_cones_topic, 1, mapCallback);
   ros::Subscriber subPose = nh->subscribe(params->main.input_pose_topic, 1, &WayComputer::stateCallback, wayComputer);
 
   pubPartial = nh->advertise<custom_msgs::PathLimits>(params->main.output_partial_topic, 1);

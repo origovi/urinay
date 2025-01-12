@@ -14,7 +14,7 @@
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 
-#include "structures/Way.hpp"
+#include "structures/Trace.hpp"
 #include "utils/Params.hpp"
 #include "utils/definitions.hpp"
 
@@ -85,5 +85,5 @@ class Visualization {
    * 
    * @param[in] way 
    */
-  void visualize(const Way &way) const;
+  void visualize(const Trace &way) const;
 };

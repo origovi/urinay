@@ -50,6 +50,11 @@ Vector Edge::normal() const {
   return Vector(this->n0.point(), this->n1.point()).rotClock();
 }
 
+double Edge::trackWidth(const Vector &dir) const {
+  double incisionAngle = dir.angleWith(this->normal());
+  return abs(this->len * cos(incisionAngle));
+}
+
 std::ostream &operator<<(std::ostream &os, const Edge &e) {
   os << "E(" << e.n0 << ", " << e.n1 << ")";
   return os;

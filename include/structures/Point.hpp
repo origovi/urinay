@@ -85,6 +85,18 @@ class Point {
     return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
   }
 
+    /**
+   * @brief Checks if line segments defined by \a AB and \a CD intersect.
+   * 
+   * @param[in] A 
+   * @param[in] B 
+   * @param[in] C 
+   * @param[in] D 
+   */
+  static inline bool segmentsIntersect(const Point &A, const Point &B, const Point &C, const Point &D) {
+    return Point::ccw(A, C, D) != Point::ccw(B, C, D) and Point::ccw(A, B, C) != Point::ccw(A, B, D);
+  }
+
   /**
    * @brief Prints a Point.
    * 
