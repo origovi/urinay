@@ -1,7 +1,8 @@
 # I/O Topics
 input_cones_topic:              "/slam/map_with_id"
-input_pose_topic:               "/fast_limo/state"
-# input_pose_topic:               "/EKF/odometry"
+# input_pose_topic:               "/fast_limo/state"
+input_pose_topic:               "/EKF/odometry"
+# input_pose_topic:               "/fastslam/odometry"
 output_full_topic:              "/AS/P/pathlimits/full"
 output_partial_topic:           "/AS/P/pathlimits/partial"
 
