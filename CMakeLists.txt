@@ -3,7 +3,7 @@ project(urinay)
 
 add_compile_options(-std=c++14)
 
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -Ofast")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
 set(CMAKE_BUILD_TYPE "Release")
 
 find_package(catkin REQUIRED COMPONENTS roscpp std_msgs custom_msgs sensor_msgs roslib eigen_conversions)
