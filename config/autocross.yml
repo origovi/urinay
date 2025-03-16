@@ -14,7 +14,7 @@ search_radius:                  5.0     # double [m]
 max_angle_diff:                 0.8     # double [rad] maximum angle difference between points in midline. Minimum 0, maximum pi/2.
 track_width_diff_factor:        0.4     # double [-]   [0.0,1.0] if the path has a mean track width of x, a midpoint belonging to an edge e will only be considered if x-this*x < track_width(e) <= x+x*this, the bigger this is the less restrictive
 max_search_options:             2       # int    [num] number of maximum children of every node in the tree during the search, 2 is stable, 3 risky
-max_next_heuristic:             1.0     # double [-]
+max_next_heuristic:             1.5     # double [-]
 heur_dist_weight:               0.1     # float  [-]   [0.0,1.0] weight of the distance in the next midpoint heuristic. Assume heur_angle_weight = 1.0-this.
 heur_track_width_diff_weight:   0.8     # float  [-]   weight of the track width difference in the next midpoint heuristic.
 allow_intersection:             false   # bool   [-]   whether or not to allow path intersection (a loop in the path).
