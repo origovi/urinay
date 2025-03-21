@@ -142,7 +142,7 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *ac
       (actTrace->size() >= 2 and Vector::pointBehind(actEdge->midPoint(), lastPos, actEdge->normal()) == Vector::pointBehind(actEdge->midPoint(), nextPossibleEdge.midPoint(), actEdge->normal())) or
 
       // 6. Remove any edge whose track width is too big or too small compared to the average track width
-      (nextPossibleEdge.trackWidth(nextDir) < (1 - params.track_width_diff_factor) * actTrace->avgTrackWidth() or nextPossibleEdge.trackWidth(nextDir) > (1 + params.track_width_diff_factor) * actTrace->avgTrackWidth()) or
+      (nextPossibleEdge.trackWidth(nextDir) < params.min_track_width) or
 
       // 7. [If not allow_intersection, only before closing the loop] Remove any Edge which appended would create an intersection
       (!params.allow_intersection and !actTrace->isLoopClosed() and actTrace->intersectsWith(nextPossibleEdge)));

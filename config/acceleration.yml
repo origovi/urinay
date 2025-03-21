@@ -10,11 +10,11 @@ max_dist_circum_midPoint:       10.0    # double [m]   only take into account th
 max_way_horizon_size:           0       # int    [num] max horizon size of the path (max number of midpoints computer ahead of the car). 0 for infinite.
 best_search_options_to_keep:    10      # int    [num] during the search, how many "best" different paths is allowed to keep in memory.
 prune_same_height_heur_factor:  0.5     # float  [-]   during the search, traces will be pruned if: best.height > trace.height or trace.sumHeur*THIS > best.sumHeur.
-search_radius:                  10.0    # double [m]
+search_radius:                  10.0    # double [m]   maximum distance there can be from one midpoint to the next one.
 max_angle_diff:                 0.15    # double [rad] maximum angle difference between points in midline. Minimum 0, maximum pi/2.
-track_width_diff_factor:        0.4     # double [-]   [0.0,1.0] if the path has a mean track width of x, a midpoint belonging to an edge e will only be considered if x-this*x < track_width(e) <= x+x*this, the bigger this is the less restrictive
+min_track_width:                2.5     # double [-]   minimum track width.
 max_search_options:             2       # int    [num] number of maximum children of every node in the tree during the search, 2 is stable, 3 risky
-max_next_heuristic:             4.0     # double [-]
+max_next_heuristic:             4.0     # double [-]   from one midpoint to the next one, this is the maximum value a next midpoint's heuristic can have.
 heur_dist_weight:               0.0     # float  [-]   [0.0,1.0] weight of the distance in the next midpoint heuristic. Assume heur_angle_weight = 1.0-this.
 heur_track_width_diff_weight:   0.2     # float  [-]   weight of the track width difference in the next midpoint heuristic.
 allow_intersection:             false   # bool   [-]   whether or not to allow path intersection (a loop in the path).

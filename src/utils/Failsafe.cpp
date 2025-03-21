@@ -21,7 +21,7 @@ void Failsafe<T>::initGeneral(const T &params, const double &safetyFactor, const
 
   this->search_radius *= safetyFactor;
   this->max_angle_diff = std::min(this->max_angle_diff*safetyFactor, M_PI_2);
-  this->track_width_diff_factor *= safetyFactor;
+  this->min_track_width /= safetyFactor;
   this->max_next_heuristic *= safetyFactor;
 }
 template void Failsafe<Params::WayComputer::Search>::initGeneral(const Params::WayComputer::Search &, const double &, const int &);

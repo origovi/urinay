@@ -38,7 +38,7 @@ Params::Params(ros::NodeHandle *const nh) {
   nh->param<float>(ns + "/prune_same_height_heur_factor", wayComputer.search.prune_same_height_heur_factor, 0.5);
   nh->param<double>(ns + "/search_radius", wayComputer.search.search_radius, 5.0);
   nh->param<double>(ns + "/max_angle_diff", wayComputer.search.max_angle_diff, 0.6);
-  nh->param<double>(ns + "/track_width_diff_factor", wayComputer.search.track_width_diff_factor, 0.5);
+  nh->param<double>(ns + "/min_track_width", wayComputer.search.min_track_width, 2.8);
   nh->param<int>(ns + "/max_search_options", wayComputer.search.max_search_options, 2);
   nh->param<double>(ns + "/max_next_heuristic", wayComputer.search.max_next_heuristic, 3.0);
   nh->param<float>(ns + "/heur_dist_weight", wayComputer.search.heur_dist_weight, 0.6);

@@ -39,7 +39,7 @@ class Params {
       int max_way_horizon_size;
       int best_search_options_to_keep;
       float prune_same_height_heur_factor;
-      double search_radius, max_angle_diff, track_width_diff_factor;
+      double search_radius, max_angle_diff, min_track_width;
       int max_search_options;
       double max_next_heuristic;
       float heur_dist_weight, heur_track_width_diff_weight;
