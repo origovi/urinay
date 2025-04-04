@@ -12,7 +12,6 @@
 
 #include <ros/ros.h>
 #include <list>
-#include <queue>
 
 #include "structures/Trace.hpp"
 #include "utils/Params.hpp"

@@ -43,9 +43,14 @@ class Trace {
     std::shared_ptr<Connection> before;
 
     /**
-     * @brief Size of the Trace, i.e. how long is the Connection chain.
+     * @brief Size of the Trace, i.e. how long (number of midpoints) is the Connection chain.
      */
     const size_t size;
+
+    /**
+     * @brief Length of the Trace, i.e. cumulative distance between midpoints.
+     */
+    const double len;
 
     /**
      * @brief The heuristic of this append.
@@ -116,7 +121,7 @@ class Trace {
 
   /**
    * @brief From the first, number of midpoints until the car is reached.
-   * Set after trimming by local.
+   * Set after trimming trace by local (car's position).
    */
   size_t sizeToCar_;
 
@@ -164,10 +169,18 @@ class Trace {
   bool empty() const;
 
   /**
-   * @brief Returns the size of the Trace, i.e. how long is the Connection chain.
+   * @brief Returns the size of the Trace, i.e. how long (num midpooints) is the
+   * Connection chain.
    * Complexity: O(1).
    */
   size_t size() const;
+
+  /**
+   * @brief Returns the length of the Trace in meters, i.e. how long (meters) is
+   * the Connection chain.
+   * Complexity: O(1).
+   */
+  double length() const;
 
   /**
    * @brief Returns the number of midpoints ahead of the car, until end of Trace.

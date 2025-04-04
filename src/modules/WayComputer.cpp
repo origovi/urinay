@@ -41,27 +41,7 @@ void WayComputer::filterTriangulation(TriangleSet &triangulation) const {
   }
 }
 
-void WayComputer::filterMidpoints(EdgeSet &edges, const TriangleSet &triangulation) const {
-  // Build a k-d tree of all circumcenters so finding matches is O(logn)
-  std::vector<Point> circums(triangulation.size());
-  std::transform(triangulation.begin(), triangulation.end(), circums.begin(),
-                 [](const Triangle &t) -> const Point & { return t.circumCenter(); });
-  KDTree circumKDTree(circums);
-
-  // Perform the filtering
-  auto it = edges.begin();
-  while (it != edges.end()) {
-    Point midPoint = it->midPoint();
-    KDTData<size_t> nearestCC = circumKDTree.nearest_index(midPoint);
-    if (bool(nearestCC) and Point::distSq(circums[*nearestCC], midPoint) > pow(this->params_.max_dist_circum_midPoint, 2)) {
-      it = edges.erase(it);
-    } else {
-      it++;
-    }
-  }
-}
-
-double WayComputer::getHeuristic(const Point &actPos, const Edge &nextEdge, const Vector &actDir, const Trace *actTrace, const Params::WayComputer::Search &params) const {
+std::pair<double, double> WayComputer::getHeuristic(const Point &actPos, const Edge &nextEdge, const Vector &actDir, const Trace *actTrace, const Params::WayComputer::Search &params) const {
   const Point &nextPos = nextEdge.midPoint();
   Vector nextDir(actPos, nextPos);
 
@@ -70,11 +50,11 @@ double WayComputer::getHeuristic(const Point &actPos, const Edge &nextEdge, cons
   // is [0,1], because points should not have an abs(angle) > PI/2 (or max_angle_diff).
   // In practise, we can think that the input of sqrt does not exceed 0.5.
   // Thus the range of angleHeur is in [0,0.7]
-  double angle_rad = abs(nextDir.angleWith(actDir));
-  double angleHeur = (1 - params.heur_dist_weight) * sqrt(angle_rad / M_PI_2);    // Range in [0,1], 0->best, 1->worst
+  double angle_rad = nextDir.angleWith(actDir);
+  double angleHeur = (1 - params.heur_dist_weight) * sqrt(abs(angle_rad) / M_PI_2);    // Range in [0,1], 0->best, 1->worst
 
   // 2. Distance Heuristic
-  double distHeur = params.heur_dist_weight * Point::dist(actPos, nextPos);  // Dist in [sqrt(min_distSq_between_midpoints), search_radius]
+  double distHeur = params.heur_dist_weight * Point::dist(actPos, nextPos);  // Dist in [min_dist_between_midpoints, search_radius]
 
   // 3. Track width heuristic
   double trackWidthDiff = actTrace ? abs(nextEdge.trackWidth(nextDir) - actTrace->avgTrackWidth()) / actTrace->avgTrackWidth() : 0.0;
@@ -90,7 +70,7 @@ double WayComputer::getHeuristic(const Point &actPos, const Edge &nextEdge, cons
   // std::cout << " dh: " << distHeur;
   // std::cout << " twd: " << trackWidthDiff << " twdh: " << trackWidthDiffHeur;
   // std::cout << " h: " << heur << std::endl;
-  return heur;
+  return {heur, angle_rad};
 }
 
 void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *actTrace, const KDTree &midpointsKDT, const std::vector<Edge> &edges, const Params::WayComputer::Search &params) const {
@@ -130,19 +110,19 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *ac
       nextPossibleEdge == *actEdge or
 
       // 2. Remove any edge whose distance with the last is too small
-      Point::distSq(actPos, nextPossibleEdge.midPoint()) < params.min_distSq_between_midpoints or
+      Point::distSq(actPos, nextPossibleEdge.midPoint()) < params.min_dist_between_midpoints * params.min_dist_between_midpoints or
 
       // 3. Remove any edge whose midpoint create an angle too closed with last one
       abs(actDir.angleWith(Vector(actPos, nextPossibleEdge.midPoint()))) > params.max_angle_diff or
 
-      // 4. [Only before appending the edge that closes the loop] Remove any edge that is already contained in the path but is not the one that closes the loop
-      (!actTrace->isLoopClosed() and !actTrace->closesLoopWith(nextPossibleEdge) and actTrace->containsEdge(nextPossibleEdge)) or
-
-      // 5. Remove any edge whose midpoint and lastPos are in the same side of actEdge (avoid bouncing on a track limit)
+      // 4. Remove any edge whose midpoint and lastPos are in the same side of actEdge (avoid bouncing on a track limit)
       (actTrace->size() >= 2 and Vector::pointBehind(actEdge->midPoint(), lastPos, actEdge->normal()) == Vector::pointBehind(actEdge->midPoint(), nextPossibleEdge.midPoint(), actEdge->normal())) or
 
-      // 6. Remove any edge whose track width is too big or too small compared to the average track width
+      // 5. Remove any edge whose track width is too small
       (nextPossibleEdge.trackWidth(nextDir) < params.min_track_width) or
+
+      // 6. [Only before appending the edge that closes the loop] Remove any edge that is already contained in the path but is not the one that closes the loop
+      (!actTrace->isLoopClosed() and !actTrace->closesLoopWith(nextPossibleEdge) and actTrace->containsEdge(nextPossibleEdge)) or
 
       // 7. [If not allow_intersection, only before closing the loop] Remove any Edge which appended would create an intersection
       (!params.allow_intersection and !actTrace->isLoopClosed() and actTrace->intersectsWith(nextPossibleEdge)));
@@ -164,14 +144,38 @@ void WayComputer::findNextEdges(std::vector<HeurInd> &nextEdges, const Trace *ac
     // if (actEdge) std::cout << *actEdge;
     // else std::cout << "NONE";
     // std::cout << " TO: " << edges[nextPossibleEdgeInd];
-    double heuristic = this->getHeuristic(actPos, edges[nextPossibleEdgeInd], actDir, actTrace, params);
-    if (heuristic <= params.max_next_heuristic) privilege_runner.emplace_back(heuristic, nextPossibleEdgeInd);
+    std::pair<double, double> heuristic = this->getHeuristic(actPos, edges[nextPossibleEdgeInd], actDir, actTrace, params);
+    if (heuristic.first <= params.max_next_heuristic) privilege_runner.emplace_back(heuristic, nextPossibleEdgeInd);
   }
 
   // Copy the n best HeurInd(s) into the nextEdges vector, according to
   // cppreference.com, this is O(nlogn)
   nextEdges.resize(std::min(privilege_runner.size(), (size_t)params.max_search_options));
   std::partial_sort_copy(privilege_runner.begin(), privilege_runner.end(), nextEdges.begin(), nextEdges.end());
+
+  // Filter by angle, try to remove midpoints that should be the overnext one.
+  // This is to avoid taking two midpoints where one is the next of the other.
+  // If we do not do this, we will have a lot of paths that are essentially the
+  // same but with a small variation. If when midpoint_0 is our last midpoint,
+  // midpoint_1 and midpoint_2 are added at the same time, when we process
+  // midpoint_1, we will add midpoint_2 again and therefore we will have:
+  // -> midpoint_0 -> midpoint_2
+  // -> midpoint_0 -> midpoint_1 -> midpoint_2
+  // If this is done again, this grows exponentially.
+  auto iter = nextEdges.begin();
+  while (nextEdges.size() > 1 and iter != nextEdges.end()) {
+    if (iter == nextEdges.begin()) {
+      iter++;
+      continue;
+    }
+    double best_angle_rad = nextEdges[0].first.second;
+    double angle_rad = iter->first.second;
+    if (std::abs(best_angle_rad - angle_rad) < params.overnext_midpoint_angle)
+      iter = nextEdges.erase(iter);
+    else
+      iter++;
+  }
+  
 }
 
 bool WayComputer::treeSearch(TraceBuffer &traceBuffer, const KDTree &midpointsKDT, const std::vector<Edge> &edges, const Params::WayComputer::Search &params) {
@@ -182,7 +186,7 @@ bool WayComputer::treeSearch(TraceBuffer &traceBuffer, const KDTree &midpointsKD
     this->findNextEdges(nextEdges, nullptr, midpointsKDT, edges, params);
     if (nextEdges.empty()) return false;
     for (const HeurInd &nextEdge : nextEdges) {
-      traceBuffer.emplace_back(edges[nextEdge.second], nextEdge.first);
+      traceBuffer.emplace_back(edges[nextEdge.second], nextEdge.first.first);
     }
   }
 
@@ -196,7 +200,7 @@ bool WayComputer::treeSearch(TraceBuffer &traceBuffer, const KDTree &midpointsKD
     this->findNextEdges(nextEdges, &t, midpointsKDT, edges, params);
 
     for (const HeurInd &nextEdge : nextEdges) {
-      traceBuffer.emplace(it_buff, edges[nextEdge.second], nextEdge.first, t);
+      traceBuffer.emplace(it_buff, edges[nextEdge.second], nextEdge.first.first, t);
     }
 
     if (!nextEdges.empty()) {
@@ -230,25 +234,26 @@ void WayComputer::computeWay(const std::vector<Edge> &edges, const Params::WayCo
   // Find the longest and with lower heuristic Trace. Search will be conducted
   // through a tree. All traces will be stored in a trace buffer and only the
   // n best traces will be maintained.
+  TraceBuffer traceBuffer(params);
+  if (!this->way_.empty()) traceBuffer.push_back(this->way_);
 
   // Main outer loop, every iteration of this loop will involve adding one
   // midpoint to the path.
-  TraceBuffer traceBuffer(params);
-  if (!this->way_.empty()) traceBuffer.push_back(this->way_);
   while (ros::ok() and (!params.max_way_horizon_size or traceBuffer.bestTrace().sizeAheadOfCar() <= params.max_way_horizon_size)) {
     // Perform tree search and break the loop if no next edges are found
     bool canContinue = this->treeSearch(traceBuffer, midpointsKDT, edges, params);
     
     // Stop search because no more Traces can be extended
-    if (!canContinue) break;
-
-    // Stop search becayse loop has been closed with enough confidence
-    if (traceBuffer.bestTrace().connectionsSinceLoopClosed() >= params.extra_tree_height_closure + 1) {
+    if (!canContinue)
       break;
-    }
+
+    // Stop search because loop has been closed with enough confidence
+    if (traceBuffer.bestTrace().connectionsSinceLoopClosed() >= params.extra_tree_height_closure + 1)
+      break;
 
     // Prune buffer
     traceBuffer.prune();
+    Visualization::getInstance().visualize(traceBuffer);
   }
   // Now append best trace to way
   this->way_ = traceBuffer.bestTrace().trimLoopClosure();
@@ -272,6 +277,7 @@ void WayComputer::stateCallback(const nav_msgs::Odometry::ConstPtr &data) {
 }
 
 void WayComputer::update(TriangleSet &triangulation, const std_msgs::Header &header) {
+  Time::tick("path computation");
   if (not this->localTfValid_) {
     ROS_WARN("[urinay] CarState not being received.");
     return;
@@ -293,11 +299,6 @@ void WayComputer::update(TriangleSet &triangulation, const std_msgs::Header &hea
       edgeSet.insert(e);
     }
   }
-
-  // #3: Filter the midpoints. Only the ones having a circumcenter near, will be
-  // left.
-  this->filterMidpoints(edgeSet, triangulation);
-
   // Convert this set to a vector
   std::vector<Edge> edgeVec;
   edgeVec.reserve(edgeSet.size());
@@ -305,25 +306,26 @@ void WayComputer::update(TriangleSet &triangulation, const std_msgs::Header &hea
     edgeVec.push_back(e);
   }
 
-  // #4: Update all local positions (way and edges) with car tf
+  // #3: Update all local positions (way and edges) with car tf
   this->way_.updateLocal(this->localTf_);
   for (const Edge &e : edgeVec) {
     e.updateLocal(this->localTf_);
   }
 
-  // #5: Perform the search through the midpoints in order to obtain a way
+  // #4: Perform the search through the midpoints in order to obtain a way
   //     using normal parameters.
   this->computeWay(edgeVec, this->params_.search);
 
-  // #6: Check failsafe(s)
+  // #5: Check failsafe(s)
   if (this->params_.general_failsafe and this->way_.sizeAheadOfCar() < MIN_FAILSAFE_WAY_SIZE and !this->isLoopClosed_) {
     ROS_WARN("[urinay] GENERAL FAILSAFE ACTIVATED!");
     this->computeWay(edgeVec, this->generalFailsafe_);
   }
 
-  // #7: Visualize
+  Time::tock("path computation");
+
+  // #6: Visualize
   Visualization::getInstance().setHeader(header);
-  Visualization::getInstance().visualize(edgeSet);
   Visualization::getInstance().visualize(triangulation);
   Visualization::getInstance().visualize(this->wayToPublish_);
 }

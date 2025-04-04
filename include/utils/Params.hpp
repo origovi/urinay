@@ -29,22 +29,23 @@ class Params {
     std::string package_path;
     bool shutdown_on_loop_closure;
     float min_cone_confidence;
+    bool verbose;
   } main;
   struct WayComputer {
-    double max_triangle_edge_len, min_triangle_angle, max_dist_circum_midPoint;
+    double max_triangle_edge_len, min_triangle_angle;
     int failsafe_max_way_horizon_size;
     bool general_failsafe;
     double general_failsafe_safetyFactor;
     struct Search {
       int max_way_horizon_size;
+      double overnext_midpoint_angle;
       int best_search_options_to_keep;
-      float prune_same_height_heur_factor;
       double search_radius, max_angle_diff, min_track_width;
       int max_search_options;
       double max_next_heuristic;
       float heur_dist_weight, heur_track_width_diff_weight;
       bool allow_intersection;
-      double min_distSq_between_midpoints;
+      double min_dist_between_midpoints;
       int extra_tree_height_closure;
     } search;
     struct Way {
@@ -56,7 +57,7 @@ class Params {
   struct Visualization {
     bool publish_markers;
     std::string triangulation_topic;
-    std::string midpoints_topic;
     std::string way_topic;
+    std::string traceBuffer_topic;
   } visualization;
 };

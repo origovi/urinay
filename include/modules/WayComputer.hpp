@@ -28,6 +28,7 @@
 #include "utils/Failsafe.hpp"
 #include "utils/constants.hpp"
 #include "utils/definitions.hpp"
+#include "utils/Time.hpp"
 
 /**
  * @brief A class that has all tools and functions to compute the Way.
@@ -85,14 +86,6 @@ class WayComputer {
   void filterTriangulation(TriangleSet &triangulation) const;
 
   /**
-   * @brief Filters the Edges by their midpoints and removes all unwanted Edge(s).
-   *
-   * @param[in,out] edges
-   * @param[in] triangulation
-   */
-  void filterMidpoints(EdgeSet &edges, const TriangleSet &triangulation) const;
-
-  /**
    * @brief Computes and returns the heuristic based on angle and distance.
    * Uses \a params as its parameters.
    *
@@ -102,11 +95,11 @@ class WayComputer {
    * @param[in] actTrace
    * @param[in] params
    */
-  double getHeuristic(const Point &actPos,
-                      const Edge &nextEdge,
-                      const Vector &actDir,
-                      const Trace *actTrace,
-                      const Params::WayComputer::Search &params) const;
+  std::pair<double, double> getHeuristic(const Point &actPos,
+                                         const Edge &nextEdge,
+                                         const Vector &actDir,
+                                         const Trace *actTrace,
+                                         const Params::WayComputer::Search &params) const;
 
   /**
    * @brief Finds all possible next Edges according to all metrics and thresholds.

@@ -6,9 +6,11 @@ input_pose_topic:               "/limovelo/state"
 output_full_topic:              "/AS/P/pathlimits/full"
 output_partial_topic:           "/AS/P/pathlimits/partial"
 
+verbose:                        true    # bool   [-]   whether or not to display time profiling report, when false, nothing is printed
+
 # Markers
 publish_markers:                true    # bool   [-]   whether or not to publish the markers.
 marker_topics:
   triangulation:                "/AS/P/urinay/markers/triangulation"
-  midpoints:                    "/AS/P/urinay/markers/midpoints"
   way:                          "/AS/P/urinay/markers/way"
+  traceBuffer:                  "/AS/P/urinay/markers/traceBuffer"

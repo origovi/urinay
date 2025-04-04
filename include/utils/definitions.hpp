@@ -18,6 +18,6 @@
 using TriangleSet = std::unordered_set<Triangle>;
 using EdgeSet = std::unordered_set<Edge>;
 
-using HeurInd = std::pair<double, size_t>;
+using HeurInd = std::pair<std::pair<double, double>, size_t>;
 
 using Tracklimits = std::pair<std::vector<Node>, std::vector<Node>>;

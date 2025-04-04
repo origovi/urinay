@@ -40,7 +40,7 @@ void mapCallback(const custom_msgs::ConeWithIdArray::ConstPtr &data) {
     return;
   }
 
-  Time::tick("computation");  // Start measuring time
+  Time::tick("total");
 
   // Convert to Node vector
   std::vector<Node> nodes;
@@ -68,7 +68,7 @@ void mapCallback(const custom_msgs::ConeWithIdArray::ConstPtr &data) {
     mkdir(loopDir.c_str(), 0777);
     wayComputer->writeWayToFile(loopDir + "/loop.unay");
     if (params->main.shutdown_on_loop_closure) {
-      Time::tock("computation");  // End measuring time
+      Time::tock("total");
       ROS_INFO("[urinay] Have a good day :)");
       ros::shutdown();
     }
@@ -78,7 +78,9 @@ void mapCallback(const custom_msgs::ConeWithIdArray::ConstPtr &data) {
     pubPartial.publish(wayComputer->getPathLimits());
   }
 
-  Time::tock("computation");  // End measuring time
+  Time::tock("total");
+  if (params->main.verbose)
+    Time::print_report();
 }
 
 // Main
@@ -89,6 +91,7 @@ int main(int argc, char **argv) {
 
   params = new Params(nh);
   wayComputer = new WayComputer(params->wayComputer);
+  Time::print_after_tock = false;
   Visualization::getInstance().init(nh, params->visualization);
 
   // Subscribers & Publishers
@@ -96,7 +99,7 @@ int main(int argc, char **argv) {
   ros::Subscriber subPose = nh->subscribe(params->main.input_pose_topic, 1, &WayComputer::stateCallback, wayComputer);
 
   pubPartial = nh->advertise<custom_msgs::PathLimits>(params->main.output_partial_topic, 1);
-  pubFull = nh->advertise<custom_msgs::PathLimits>(params->main.output_full_topic, 1);
+  pubFull = nh->advertise<custom_msgs::PathLimits>(params->main.output_full_topic, 1, true);  // Latch message
 
   ros::spin();
 }

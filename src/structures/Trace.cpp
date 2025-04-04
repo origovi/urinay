@@ -16,7 +16,7 @@ Params::WayComputer::Way Trace::params_;
 
 Trace::Connection::Connection(const Edge &edge, const double &heur, const bool &loopClosed, std::shared_ptr<Connection> before)
     : edge(edge), before(before), heur(heur),
-      sumHeur(before ? before->sumHeur + heur : heur), size(before ? (before->size + 1) : 1),
+      sumHeur(before ? before->sumHeur + heur : heur), size(before ? (before->size + 1) : 1), len(before ? (before->len + Point::dist(edge.midPoint(), before->edge.midPoint())) : 0.0),
       avgTrackWidth(before ? before->avgTrackWidth + ((edge.trackWidth(Vector(before->edge.midPoint(), edge.midPoint())) - before->avgTrackWidth) / (before->size + 1)) : edge.trackWidth(Vector(1, 0))),
       loopClosed(loopClosed),
       connectionsSinceLoopClosed(before && before->connectionsSinceLoopClosed >= 1 ? before->connectionsSinceLoopClosed + 1 : (loopClosed ? 1 : 0)) {}
@@ -57,6 +57,13 @@ size_t Trace::size() const {
     return 0;
   else
     return this->p->size;
+}
+
+double Trace::length() const {
+  if (empty())
+    return 0.0;
+  else
+    return this->p->len;
 }
 
 size_t Trace::sizeAheadOfCar() const { return this->size() - this->sizeToCar_; }
@@ -235,6 +242,7 @@ bool Trace::intersectsWith(const Edge &e) const {
 
 void Trace::clear() {
   this->p = nullptr;
+  this->sizeToCar_ = 0;
 }
 
 void Trace::detach() const {

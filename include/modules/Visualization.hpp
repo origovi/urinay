@@ -15,6 +15,7 @@
 #include <visualization_msgs/MarkerArray.h>
 
 #include "structures/Trace.hpp"
+#include "structures/TraceBuffer.hpp"
 #include "utils/Params.hpp"
 #include "utils/definitions.hpp"
 
@@ -27,7 +28,7 @@ class Visualization {
   /**
    * @brief All Markers publishers.
    */
-  ros::Publisher trianglesPub, midpointsPub, wayPub;
+  ros::Publisher trianglesPub, wayPub, traceBufferPub;
   
   /**
    * @brief All parameters related to the Visualization class.
@@ -72,13 +73,6 @@ class Visualization {
    * @param[in] triSet 
    */
   void visualize(const TriangleSet &triSet) const;
-  
-  /**
-   * @brief Method to visualize an EdgeSet.
-   * 
-   * @param[in] edgeSet 
-   */
-  void visualize(const EdgeSet &edgeSet) const;
 
   /**
    * @brief Method to visualize a Way.
@@ -86,4 +80,13 @@ class Visualization {
    * @param[in] way 
    */
   void visualize(const Trace &way) const;
+
+  /**
+   * @brief Method to visualize a TraceBuffer, i.e. all traces in real time.
+   * NOTE: by subscribing to the trace buffer topic, a delay is added to
+   * visualize the decision tree process.
+   * 
+   * @param[in] traceBuffer 
+   */
+  void visualize(const TraceBuffer &traceBuffer) const;
 };

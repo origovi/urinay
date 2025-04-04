@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "utils/definitions.hpp"
+#include "utils/Time.hpp"
 #include "structures/Triangle.hpp"
 
 /**

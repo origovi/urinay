@@ -21,18 +21,18 @@ void TraceBuffer::prune() {
 
   Trace best = this->bestTrace();
 
-  // 1. Remove shorter traces and very bad ones
+  // 1. Remove shortest (num midpoints) traces
   auto it = this->begin();
   while (it != this->end()) {
-    if (it->size() < best.size() or it->sumHeur()*params_.prune_same_height_heur_factor > best.sumHeur()) {
+    if (it->size() < best.size()) {
       it = this->erase(it);
     } else {
       it++;
     }
   }
 
-  // // 2. Keep k best traces
-  // 2.1. We construct a max heap to keep the k best
+  // 2. Keep k shortest (meters) traces
+  // 2.1. We construct a max heap to keep the shortest in O(n+log(k))
   std::vector<Trace> max_heap;
   max_heap.reserve(this->params_.best_search_options_to_keep);
   for (const Trace &t : *this) {
@@ -47,7 +47,7 @@ void TraceBuffer::prune() {
   }
   std::sort(max_heap.begin(), max_heap.end());
 
-  // 2.2. Convert heap back to std::list
+  // 2.2. Push back the shortest (meters) traces
   this->clear();
   for (const Trace &t : max_heap) {
     this->push_back(t);

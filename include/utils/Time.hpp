@@ -15,6 +15,7 @@
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <iomanip>
 
 /**
  * @brief Abstract-static class made to make it easier to quantify the time
@@ -22,10 +23,41 @@
  */
 class Time {
  private:
-  static std::map<std::string, ros::WallTime> clocks_;
+  /**
+   * @brief This private class helps to store all the metrics needed for
+   * profiling.
+   */
+  struct Task {
+    bool active = true;
+    ros::WallTime startTime;
+    ros::WallDuration total_time_active;
+    uint64_t count = 0;
+    ros::WallDuration last_duration, max_duration;
+    Task(const ros::WallTime &_startTime)
+      : startTime(_startTime) {}
+    void activate(const ros::WallTime &_startTime) {
+      startTime = _startTime;
+      active = true;
+    }
+    ros::WallDuration stop(const ros::WallTime &stopTime) {
+      active = false;
+      last_duration = stopTime - startTime;
+      total_time_active += last_duration;
+      if (last_duration > max_duration) max_duration = last_duration;
+      count++;
+      return last_duration;
+    }
+  };
+  static std::map<std::string, Task> tasks_;
 
  public:
   Time() = delete;
+
+  /**
+   * @brief When true, after every call to tock(), a line indicating the task
+   * duration is printed.
+   */
+  static bool print_after_tock;
 
   /**
    * @brief Creates a clock with name \a clockName.
@@ -41,4 +73,14 @@ class Time {
    * @param[in] clockName 
    */
   static ros::WallDuration tock(const std::string &clockName);
+
+  /**
+   * @brief Prints a time report that includes time metrics of all tasks.
+   * The report includes:
+   * - Last duration of task
+   * - Max duration of task
+   * - Average duration of task
+   */
+  static void print_report();
+
 };
