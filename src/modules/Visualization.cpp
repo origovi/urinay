@@ -171,13 +171,14 @@ void Visualization::visualize(const TraceBuffer &traceBuffer) const {
   ma.markers.push_back(mTrace);
   mTrace.action = visualization_msgs::Marker::ADD;
 
-  for (Trace t : traceBuffer) {
+  for (const TraceWithBuffer &twb : traceBuffer) {
     mTrace.points.clear();
     mTrace.id = id++;
     mTrace.color.r = rand() / double(RAND_MAX);
     mTrace.color.g = rand() / double(RAND_MAX);
     mTrace.color.b = rand() / double(RAND_MAX);
 
+    Trace t = twb.trace;
     while (!t.empty()) {
       mTrace.points.push_back(t.edge().midPointGlobal().gmPoint());
       t = t.before();

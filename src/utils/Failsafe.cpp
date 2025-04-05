@@ -25,6 +25,5 @@ void Failsafe<T>::initGeneral(const T &params, const double &safetyFactor, const
   this->max_next_heuristic *= safetyFactor;
   this->overnext_midpoint_angle /= safetyFactor;
   this->allow_intersection = false;
-  this->best_search_options_to_keep *= safetyFactor;
 }
 template void Failsafe<Params::WayComputer::Search>::initGeneral(const Params::WayComputer::Search &, const double &, const int &);

@@ -1,6 +1,6 @@
 # Urinay
 
-Urinay is a color-blind path+tracklimits algorithm developed for computing the centerline and track limits of the Formula Student driverless autocross track without the need of sensing the cones' color. It uses Delaunay triangulation and a heuristic-weighted tree search and only takes the cone positions and the car pose. Made for [BCN eMotorsport Formula Student team](https://bcnemotorsport.upc.edu) by me (Oriol Gorriz) entirely in C++ and to work with ROS.
+Urinay is a color-blind path+tracklimits algorithm developed for computing the centerline and track limits of the Formula Student driverless autocross track without the need of sensing the cones' color. It uses Delaunay triangulation and a heuristic-weighted limited-height tree search and only takes as input the cones and the car pose. Made for [BCN eMotorsport Formula Student team](https://bcnemotorsport.upc.edu) by me (Oriol Gorriz) entirely in C++ and to work with ROS.
 
 For a **color dependant / hybrid** version check out the branch **`color`**.
 
@@ -35,18 +35,18 @@ As shown in *Fig. 2*, we can already see a very clear path (midline) out of the 
 ## 3. Midline Calculation
 Now we need to obtain a midline from the triangle edges' midpoints. This midline will be an array of midpoints in the order in which the car will reach them.
 
-Urinay solves this problem by implementing an iterative heuristic-weighted tree search.
+Urinay solves this problem by implementing an iterative heuristic-weighted limited-height tree search.
 
 ### 3.1. Tree search
 Tree search provides a certain "intelligence" to the algorithm, of course we can iteratively append the best midpoint to the midline by just looking at the distance and angle but this will not end up with the best overall midline. We need to consider options that are not "the best" at a local sight.
-As shown in *Fig. 3*, this tree search is a [BFS](https://en.wikipedia.org/wiki/Breadth-first_search) that keeps track of all possible paths at a given iteration and enlarges all of them by one midpoint each time while appending new possible paths.
+As shown in *Fig. 3*, this tree search is a [BFS](https://en.wikipedia.org/wiki/Breadth-first_search) that keeps track of all possible paths at a given iteration, extends all of them by one midpoint each time while and appends new possible paths, while making sure that the height of the trees are always limited.
 The search works as follows:
 
 1. The **starting point** will be the midline's closest point to the car, or the car's position if the midline is empty.
-2. This point will be the root of the tree, steps 3-7 will be performed for each point *p* of each path until a stop condition is found for every path. These are:
+2. This point will be the root of the tree, steps 3-8 will be performed for each point *p* of each path until a stop condition is found for every path. These are:
     - No possible next admissible midpoints are found.
     - The path satisfy loop closing conditions.
-For performance reasons, the tree will be pruned at each iteration to only consider the **best longest** *n* paths, we do this by using a constrained-size search buffer.
+For performance reasons, the tree will be pruned at each iteration to only consider the **best longest** paths, we do this by removing all subpaths that are not the longest in the search buffer.
 3. All midpoints within a **radius** of the point will be considered.
 4. A filtering will be carried out, the following midpoints will be removed:
     - Any midpoint creating an **angle** too big with last point (avoid points behind and closed curves).
@@ -56,8 +56,9 @@ For performance reasons, the tree will be pruned at each iteration to only consi
     - Any midpoint that when appended to the path creates an intersection (on the path itself).
 5. A **heuristic** value for each of the candidate midpoints will be calculated.
 6. **Discard** all midpoints whose heuristic exceeds a threshold.
-7. Append all remaining points as sons of *p*.
-8. Find the best path. This will be the **longest path**. If two paths have equal length the one with smallest sum of heuristics will prevail.
+7. Append all remaining points as sons of *p*. Effectively extending existing subpaths and creating new ones.
+8. When the maximum tree search height is reached, the first midpoint of the best subpath so far will be considered as definitive.
+9. We append to the definitive path the **best longest path** of the current search tree.
 
 <p align="center">
   <img src="./documentation/assets/urinay_bfs.gif" alt="Tree search visualized" width="500" /><br />

@@ -34,7 +34,7 @@ Params::Params(ros::NodeHandle *const nh) {
   nh->param<double>(ns + "/general_failsafe_safetyFactor", wayComputer.general_failsafe_safetyFactor, 1.4);
   // WayComputer::Search
   nh->param<int>(ns + "/max_way_horizon_size", wayComputer.search.max_way_horizon_size, 0);
-  nh->param<int>(ns + "/best_search_options_to_keep", wayComputer.search.best_search_options_to_keep, 50);
+  nh->param<int>(ns + "/tree_search_max_height", wayComputer.search.tree_search_max_height, 7);
   nh->param<double>(ns + "/search_radius", wayComputer.search.search_radius, 5.0);
   nh->param<double>(ns + "/max_angle_diff", wayComputer.search.max_angle_diff, 0.6);
   nh->param<double>(ns + "/min_track_width", wayComputer.search.min_track_width, 2.8);
@@ -45,12 +45,10 @@ Params::Params(ros::NodeHandle *const nh) {
   nh->param<float>(ns + "/heur_track_width_diff_weight", wayComputer.search.heur_track_width_diff_weight, 0.2);
   nh->param<bool>(ns + "/allow_intersection", wayComputer.search.allow_intersection, false);
   nh->param<double>(ns + "/min_dist_between_midpoints", wayComputer.search.min_dist_between_midpoints, 0.09);
-  nh->param<int>(ns + "/extra_tree_height_closure", wayComputer.search.extra_tree_height_closure, 7);
-
-  // WayComputer::Way
-  nh->param<double>(ns + "/max_dist_loop_closure", wayComputer.way.max_dist_loop_closure, 1.0);
-  nh->param<double>(ns + "/max_angle_diff_loop_closure", wayComputer.way.max_angle_diff_loop_closure, 0.6);
-  nh->param<int>(ns + "/vital_num_midpoints", wayComputer.way.vital_num_midpoints, 5);
+  // WayComputer::Trace
+  nh->param<double>(ns + "/max_dist_loop_closure", wayComputer.trace.max_dist_loop_closure, 1.0);
+  nh->param<double>(ns + "/max_angle_diff_loop_closure", wayComputer.trace.max_angle_diff_loop_closure, 0.6);
+  nh->param<int>(ns + "/vital_num_midpoints", wayComputer.trace.vital_num_midpoints, 5);
 
   // Visualization
   nh->param<bool>(ns + "/publish_markers", visualization.publish_markers, false);

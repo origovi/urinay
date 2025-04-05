@@ -5,7 +5,7 @@ min_triangle_angle:             0.35    # double [rad] all triangles with any an
 
 # Search
 ## General search behavior
-best_search_options_to_keep:    50      # int    [num] during the search, how many "best" different paths is allowed to keep in memory.
+tree_search_max_height:         10      # int    [num] this is the height limit of the tree search, the longer it is the longer the subpaths will be when a decision is made.
 search_radius:                  5.0     # double [m]   maximum distance there can be from one midpoint to the next one.
 max_search_options:             2       # int    [num] number of maximum children of every node in the tree during the search, 2 is stable, 3 risky
 overnext_midpoint_angle:        0.2     # double [rad] when considering the max_search_options, it might happen that some (or all) of the other midpoints considered are indeed the overnext midpoint because of a big search_radius, in this case, since one is next of the other, we do not want to add both to the search (only the one that could be the next and not overnext). We filter them by the angle. If other candidates have a very similar angle (less than THIS) to the best candidate, they are removed.
@@ -26,7 +26,6 @@ min_dist_between_midpoints:     0.81    # double [m]   minimum possible distance
 shutdown_on_loop_closure:       false   # bool   [-]   whether or not it will shut itself down after a loop was closed.
 max_dist_loop_closure:          5.0     # double [m]   maximum distance between first and last midpoint to consider it a loop.
 max_angle_diff_loop_closure:    0.65    # double [rad] maximum angle difference between first and last midpoints. Expected to be same as max_angle_diff but it may come in hand having two separated.
-extra_tree_height_closure:      7       # int    [num] when closing the loop, how many extra "looped" midpoints should the search consider.
 
 # Replan flag
 vital_num_midpoints:            10      # int    [num] number of midpoints that are considered "vital" from the car's position on. This is taken into account when computing the new_close_midpoints flag when converting to custom_msgs::PathLimits.

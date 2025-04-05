@@ -12,7 +12,7 @@
 
 /* ----------------------------- Private Methods ---------------------------- */
 
-Params::WayComputer::Way Trace::params_;
+Params::WayComputer::Trace Trace::params_;
 
 Trace::Connection::Connection(const Edge &edge, const double &heur, const bool &loopClosed, std::shared_ptr<Connection> before)
     : edge(edge), before(before), heur(heur),
@@ -30,7 +30,7 @@ Trace::Trace(const std::shared_ptr<Connection> &p, const size_t &sizeToCar)
 
 /* ----------------------------- Public Methods ----------------------------- */
 
-void Trace::init(const Params::WayComputer::Way &params) {
+void Trace::init(const Params::WayComputer::Trace &params) {
   params_ = params;
 }
 

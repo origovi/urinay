@@ -12,9 +12,26 @@
 
 #include <ros/ros.h>
 #include <list>
+#include <deque>
 
 #include "structures/Trace.hpp"
 #include "utils/Params.hpp"
+
+/**
+ * @brief Auxiliar type to help with the search.
+ * Represents a trace and a buffer containing the elements in the current
+ * tree search.
+ */
+class TraceWithBuffer {
+ public:
+  Trace trace;
+  std::deque<const Edge*> buffer;
+  TraceWithBuffer(const Trace &t, const Edge *firstEdge = nullptr)
+    : trace(t) {
+    if (firstEdge) buffer.push_back(firstEdge);
+  }
+  TraceWithBuffer() {}
+};
 
 /**
  * @brief Represents a buffer of a search Trace tree, i.e. a set of traces
@@ -22,7 +39,7 @@
  * It provides methods to prune the possibilities and other useful
  * functionality.
  */
-class TraceBuffer : public std::list<Trace> {
+class TraceBuffer : public std::list<TraceWithBuffer> {
  private:
   /**
    * @brief Search parameters.
@@ -30,13 +47,28 @@ class TraceBuffer : public std::list<Trace> {
   const Params::WayComputer::Search params_;
 
  public:
+
   TraceBuffer(const Params::WayComputer::Search &params);
 
   /**
-   * @brief Prunes the buffer by removing full Trace(s) that are far from
+   * @brief Prunes the buffer by removing full Trace(s) that are shorter than
    * the best.
    */
   void prune();
+
+  /**
+   * @brief Adds the next edge to the definitive path.
+   * 
+   * @param[in] nextEdge represents the next valid Edge that should be part
+   * of the definitive path
+   */
+  void setEdgeAsDefinitive(const Edge &nextEdge);
+
+  /**
+   * @brief Returns the best TraceWithBuffer (according to Trace::operator<).
+   * WARNING, if empty, returns an empty Trace!
+   */
+  TraceWithBuffer bestTraceWithBuffer() const;
 
   /**
    * @brief Returns the best Trace (according to Trace::operator<).

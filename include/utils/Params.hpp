@@ -38,21 +38,20 @@ class Params {
     double general_failsafe_safetyFactor;
     struct Search {
       int max_way_horizon_size;
+      int tree_search_max_height;
       double overnext_midpoint_angle;
-      int best_search_options_to_keep;
       double search_radius, max_angle_diff, min_track_width;
       int max_search_options;
       double max_next_heuristic;
       float heur_dist_weight, heur_track_width_diff_weight;
       bool allow_intersection;
       double min_dist_between_midpoints;
-      int extra_tree_height_closure;
     } search;
-    struct Way {
+    struct Trace {
       double max_dist_loop_closure;
       double max_angle_diff_loop_closure;
       int vital_num_midpoints;
-    } way;
+    } trace;
   } wayComputer;
   struct Visualization {
     bool publish_markers;

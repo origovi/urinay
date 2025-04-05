@@ -186,7 +186,7 @@ bool WayComputer::treeSearch(TraceBuffer &traceBuffer, const KDTree &midpointsKD
     this->findNextEdges(nextEdges, nullptr, midpointsKDT, edges, params);
     if (nextEdges.empty()) return false;
     for (const HeurInd &nextEdge : nextEdges) {
-      traceBuffer.emplace_back(edges[nextEdge.second], nextEdge.first.first);
+      traceBuffer.emplace_back(Trace(edges[nextEdge.second], nextEdge.first.first), &edges[nextEdge.second]);
     }
   }
 
@@ -195,12 +195,15 @@ bool WayComputer::treeSearch(TraceBuffer &traceBuffer, const KDTree &midpointsKD
   bool didSth = false;
   auto it_buff = traceBuffer.begin();
   while (it_buff != traceBuffer.end()) {
-    Trace &t = *it_buff;  // Reference to current iterated trace
+    TraceWithBuffer &twb = *it_buff;  // Reference to current iterated trace
 
-    this->findNextEdges(nextEdges, &t, midpointsKDT, edges, params);
+    this->findNextEdges(nextEdges, &twb.trace, midpointsKDT, edges, params);
 
     for (const HeurInd &nextEdge : nextEdges) {
-      traceBuffer.emplace(it_buff, edges[nextEdge.second], nextEdge.first.first, t);
+      TraceWithBuffer twb_updated = twb;
+      twb_updated.trace.addEdge(edges[nextEdge.second], nextEdge.first.first);
+      twb_updated.buffer.push_back(&edges[nextEdge.second]);
+      traceBuffer.emplace(it_buff, twb_updated);
     }
 
     if (!nextEdges.empty()) {
@@ -235,7 +238,7 @@ void WayComputer::computeWay(const std::vector<Edge> &edges, const Params::WayCo
   // through a tree. All traces will be stored in a trace buffer and only the
   // n best traces will be maintained.
   TraceBuffer traceBuffer(params);
-  if (!this->way_.empty()) traceBuffer.push_back(this->way_);
+  if (!this->way_.empty()) traceBuffer.emplace_back(this->way_);
 
   // Main outer loop, every iteration of this loop will involve adding one
   // midpoint to the path.
@@ -248,14 +251,21 @@ void WayComputer::computeWay(const std::vector<Edge> &edges, const Params::WayCo
       break;
 
     // Stop search because loop has been closed with enough confidence
-    if (traceBuffer.bestTrace().connectionsSinceLoopClosed() >= params.extra_tree_height_closure + 1)
+    if (traceBuffer.bestTrace().connectionsSinceLoopClosed() >= params.tree_search_max_height + 1)
       break;
 
     // Prune buffer
     traceBuffer.prune();
+
+    // If the search tree height (best Trace buffer size) is above the max:
+    // Mark the first Edge of the buffer as definitive and get rid of all
+    // subpaths not containing that Edge as first.
+    if (traceBuffer.bestTraceWithBuffer().buffer.size() >= params.tree_search_max_height) {
+      traceBuffer.setEdgeAsDefinitive(*(traceBuffer.bestTraceWithBuffer().buffer.front()));
+    }
     Visualization::getInstance().visualize(traceBuffer);
   }
-  // Now append best trace to way
+  // Now take best Trace as our next Way
   this->way_ = traceBuffer.bestTrace().trimLoopClosure();
   this->isLoopClosed_ = this->way_.isLoopClosed();
   this->wayToPublish_ = this->isLoopClosed_ ? this->way_.restructureClosure() : this->way_;
@@ -264,7 +274,7 @@ void WayComputer::computeWay(const std::vector<Edge> &edges, const Params::WayCo
 /* ----------------------------- Public Methods ----------------------------- */
 
 WayComputer::WayComputer(const Params::WayComputer &params) : params_(params) {
-  Trace::init(params.way);
+  Trace::init(params.trace);
   this->generalFailsafe_.initGeneral(this->params_.search, this->params_.general_failsafe_safetyFactor, this->params_.failsafe_max_way_horizon_size);
 }
 

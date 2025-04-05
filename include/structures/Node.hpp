@@ -24,8 +24,8 @@
 #include "utils/constants.hpp"
 
 /**
- * @brief Represents a node, i.e. the useful part of an as_msgs::Cone
- * (positions and id).
+ * @brief Represents a node, i.e. the useful part of an custom_msgs::ConeWithId
+ * (position and id).
  */
 class Node {
  private:

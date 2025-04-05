@@ -112,7 +112,7 @@ class Trace {
   /**
    * @brief All parameters related to the Trace class.
    */
-  static Params::WayComputer::Way params_;
+  static Params::WayComputer::Trace params_;
 
   /**
    * @brief IMPORTANT ATTRIBUTE, a shared pointer to a Connection.
@@ -140,7 +140,7 @@ class Trace {
    * 
    * @param[in] params 
    */
-  static void init(const Params::WayComputer::Way &params);
+  static void init(const Params::WayComputer::Trace &params);
   /**
    * @brief Construct a new Trace object.
    */
