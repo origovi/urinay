@@ -378,11 +378,11 @@ custom_msgs::PathLimits WayComputer::getPathLimits() const {
   Tracklimits tracklimits = this->wayToPublish_.getTracklimits();
   res.tracklimits_left.reserve(tracklimits.first.size());
   for (const Node &n : tracklimits.first) {
-    res.tracklimits_left.push_back(n.point().gmPoint());
+    res.tracklimits_left.push_back(n.pointGlobal().gmPoint());
   }
   res.tracklimits_right.reserve(tracklimits.second.size());
   for (const Node &n : tracklimits.second) {
-    res.tracklimits_right.push_back(n.point().gmPoint());
+    res.tracklimits_right.push_back(n.pointGlobal().gmPoint());
   }
 
   return res;
