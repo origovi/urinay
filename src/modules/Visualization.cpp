@@ -24,7 +24,7 @@ void Visualization::init(ros::NodeHandle *const nh, const Params::Visualization 
   if (params.publish_markers) {
     trianglesPub = nh->advertise<visualization_msgs::MarkerArray>(params_.triangulation_topic, 1);
     wayPub = nh->advertise<visualization_msgs::MarkerArray>(params_.way_topic, 1);
-    traceBufferPub = nh->advertise<visualization_msgs::MarkerArray>(params_.traceBuffer_topic, 1);
+    traceBufferPub = nh->advertise<visualization_msgs::MarkerArray>(params_.treeSearch_topic, 1);
   }
 }
 
@@ -32,64 +32,49 @@ void Visualization::setHeader(const std_msgs::Header &header) {
   this->lastHeader_ = header;
 }
 
-void Visualization::visualize(const TriangleSet &triSet) const {
+void Visualization::visualize(const EdgeSet &edgeSet) const {
   if (not this->params_.publish_markers) return;
   if (trianglesPub.getNumSubscribers() <= 0) return;
 
   visualization_msgs::MarkerArray ma;
-  ma.markers.reserve(1 + 5 * triSet.size());
-  visualization_msgs::Marker mTriangulation, mCircumCenter, mMidpoint;
+  ma.markers.reserve(1 + 1 + 1);  // delete, lines & midpoints
+  visualization_msgs::Marker mLines, mMidpoint;
   size_t id = 0;
-  mTriangulation.header = this->lastHeader_;
-  mTriangulation.color.a = 1.0;
-  mTriangulation.color.r = 1.0;
-  mTriangulation.pose.orientation.w = 1.0;
-  mTriangulation.scale.x = 0.1;
-  mTriangulation.scale.y = 0.1;
-  mTriangulation.scale.z = 0.01;
-  mTriangulation.id = id++;
-  mTriangulation.action = visualization_msgs::Marker::DELETEALL;
-  mTriangulation.type = visualization_msgs::Marker::LINE_STRIP;
-  ma.markers.push_back(mTriangulation);
-  mTriangulation.action = visualization_msgs::Marker::ADD;
+  mLines.header = this->lastHeader_;
+  mLines.color.a = 1.0;
+  mLines.color.r = 1.0;
+  mLines.pose.orientation.w = 1.0;
+  mLines.scale.x = 0.1;
+  mLines.id = id++;
+  mLines.action = visualization_msgs::Marker::DELETEALL;
+  mLines.type = visualization_msgs::Marker::LINE_LIST;
+  ma.markers.push_back(mLines);
+  mLines.action = visualization_msgs::Marker::ADD;
 
-  mCircumCenter = mTriangulation;
-  mCircumCenter.type = visualization_msgs::Marker::CYLINDER;
-  mCircumCenter.scale.x = 0.1;
-  mCircumCenter.scale.y = 0.1;
-  mCircumCenter.scale.z = 0.05;
-  mCircumCenter.color.r = 0.0;
-  mCircumCenter.color.g = 0.0;
-  mCircumCenter.color.b = 1.0;
-
-  mMidpoint = mCircumCenter;
-  mMidpoint.type = visualization_msgs::Marker::CUBE;
+  mMidpoint = mLines;
+  mMidpoint.type = visualization_msgs::Marker::POINTS;
+  mMidpoint.scale.x = 0.1;
+  mMidpoint.scale.y = 0.1;
   mMidpoint.color.r = 0.0;
   mMidpoint.color.g = 1.0;
   mMidpoint.color.b = 0.0;
-  for (const Triangle &t : triSet) {
-    // Triangle itself
-    mTriangulation.points.clear();
-    mTriangulation.points.reserve(4);
-    mTriangulation.id = id++;
-    mTriangulation.points.push_back(t.nodes[0].pointGlobal().gmPoint());
-    mTriangulation.points.push_back(t.nodes[1].pointGlobal().gmPoint());
-    mTriangulation.points.push_back(t.nodes[2].pointGlobal().gmPoint());
-    mTriangulation.points.push_back(t.nodes[0].pointGlobal().gmPoint());
-    ma.markers.push_back(mTriangulation);
 
-    // Circumcenter
-    mCircumCenter.pose.position = t.circumCenterGlobal().gmPoint();
-    mCircumCenter.id = id++;
-    ma.markers.push_back(mCircumCenter);
+  mLines.points.reserve(2 * edgeSet.size());
+  mLines.id = id++;
 
-    // Edges midpoints
-    for (const Edge &e : t.edges) {
-      mMidpoint.pose.position = e.midPointGlobal().gmPoint();
-      mMidpoint.id = id++;
-      ma.markers.push_back(mMidpoint);
-    }
+  mMidpoint.points.reserve(edgeSet.size());
+  mMidpoint.id = id++;
+  for (const Edge &e : edgeSet) {
+    // Edge (per se)
+    mLines.points.push_back(e.n0.pointGlobal().gmPoint());
+    mLines.points.push_back(e.n1.pointGlobal().gmPoint());
+    
+    // Midpoint
+    mMidpoint.points.push_back(e.midPointGlobal().gmPoint());
+    mMidpoint.points.back().z += 0.05;  // To make it visible and avoid overlap with triangulation in vis
   }
+  ma.markers.push_back(mLines);
+  ma.markers.push_back(mMidpoint);
   trianglesPub.publish(ma);
 }
 
@@ -148,10 +133,10 @@ void Visualization::visualize(const Trace &way) const {
 }
 
 void Visualization::visualize(const TraceBuffer &traceBuffer) const {
-  if (not this->params_.publish_markers) return;
+  if (!this->params_.publish_markers or !this->params_.visualize_treeSearch) return;
   if (traceBufferPub.getNumSubscribers() <= 0) return;
 
-  ROS_INFO_STREAM("[urinay] Visualizing " << traceBuffer.size() << " traces...");
+  ROS_WARN_STREAM("Visualizing " << traceBuffer.size() << " traces...");
 
   visualization_msgs::MarkerArray ma;
   ma.markers.reserve(traceBuffer.size() + 1);

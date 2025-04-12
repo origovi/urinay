@@ -52,7 +52,8 @@ Params::Params(ros::NodeHandle *const nh) {
 
   // Visualization
   nh->param<bool>(ns + "/publish_markers", visualization.publish_markers, false);
+  nh->param<bool>(ns + "/visualize_treeSearch", visualization.visualize_treeSearch, false);
   nh->param<std::string>(ns + "/marker_topics/triangulation", visualization.triangulation_topic, "/AS/P/urinay/markers/triangulation");
   nh->param<std::string>(ns + "/marker_topics/way", visualization.way_topic, "/AS/P/urinay/markers/way");
-  nh->param<std::string>(ns + "/marker_topics/traceBuffer", visualization.traceBuffer_topic, "/AS/P/urinay/markers/traceBuffer");
+  nh->param<std::string>(ns + "/marker_topics/treeSearch", visualization.treeSearch_topic, "/AS/P/urinay/markers/treeSearch");
 }

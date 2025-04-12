@@ -23,7 +23,9 @@
 /**
  * @brief Represents a trace, i.e. an edge path in the tree search.
  * It is implemented using shared_ptr, this way we can clone an object and
- * append an Edge with O(1) time.
+ * append an Edge with O(1) time (and also efficient in tree search).
+ * This is a chain of Connections, where the last Connection points to the one
+ * before. Therefore there are some limitations to it.
  */
 class Trace {
  private:
@@ -40,7 +42,7 @@ class Trace {
     /**
      * @brief A shared pointer to the Connection that goes before this.
      */
-    std::shared_ptr<Connection> before;
+    const std::shared_ptr<Connection> before;
 
     /**
      * @brief Size of the Trace, i.e. how long (number of midpoints) is the Connection chain.
@@ -303,12 +305,6 @@ class Trace {
    * @brief Clears the Connection chain. O(1).
    */
   void clear();
-
-  /**
-   * @brief Detaches (breaks) the Connection chain and makes the current
-   * Connection the first of the chain. O(1).
-   */
-  void detach() const;
 
     /**
    * @brief Updates the local position of all Edge(s) in the Connection chain.

@@ -55,8 +55,9 @@ class Params {
   } wayComputer;
   struct Visualization {
     bool publish_markers;
+    bool visualize_treeSearch;
     std::string triangulation_topic;
     std::string way_topic;
-    std::string traceBuffer_topic;
+    std::string treeSearch_topic;
   } visualization;
 };

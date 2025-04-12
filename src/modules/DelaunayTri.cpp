@@ -41,7 +41,7 @@ Triangle DelaunayTri::superTriangle(const std::vector<Node> &nodes) {
 /* ----------------------------- Public Methods ----------------------------- */
 
 TriangleSet DelaunayTri::compute(const std::vector<Node> &nodes) {
-  Time::tick("triangulation");
+  Logger::tick("triangulation");
   if (nodes.size() < 3) return {};
 
   TriangleSet triangulation;
@@ -99,7 +99,7 @@ TriangleSet DelaunayTri::compute(const std::vector<Node> &nodes) {
     }
   }
 
-  Time::tock("triangulation");
+  Logger::tock("triangulation");
 
   return triangulation;
 }

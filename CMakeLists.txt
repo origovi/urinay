@@ -32,7 +32,7 @@ add_library(${PROJECT_NAME}
   src/modules/DelaunayTri.cpp
   src/modules/WayComputer.cpp
   src/modules/Visualization.cpp
-  src/utils/Time.cpp
+  src/utils/Logger.cpp
   src/utils/Params.cpp
   src/utils/Failsafe.cpp
   src/utils/KDTree.cpp

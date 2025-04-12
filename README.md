@@ -1,11 +1,11 @@
 # Urinay
 
-Urinay is a color-blind path+tracklimits algorithm developed for computing the centerline and track limits of the Formula Student driverless autocross track without the need of sensing the cones' color. It uses Delaunay triangulation and a heuristic-weighted limited-height tree search and only takes as input the cones and the car pose. Made for [BCN eMotorsport Formula Student team](https://bcnemotorsport.upc.edu) by me (Oriol Gorriz) entirely in C++ and to work with ROS.
+Urinay is a color-blind path+tracklimits algorithm developed for computing the centerline and track limits of the Formula Student driverless autocross track without the need of sensing the cones' color. It uses Delaunay triangulation and a heuristic-weighted limited-height tree search and only takes as input the cones and the car pose. Made for [BCN eMotorsport](https://bcnemotorsport.upc.edu) and later improved for [TUfast Racing Team](https://tufast-racingteam.de) by me (Oriol Gorriz) entirely in C++ and to work with ROS.
 
 For a **color dependant / hybrid** version check out the branch **`color`**.
 
 ## Disclaimer
-If you use this algorithm for a Formula Student competition, the **only** thing I ask for is acknowledgment for the project. **ALWAYS REFERENCE** the team ***BCN eMotorsport***.
+If you use this algorithm for a Formula Student competition, the **only** thing I ask for is acknowledgment. **ALWAYS REFERENCE** the team ***BCN eMotorsport*** or ***TUfast Racing Team***.
 
 ## Dependencies
 - [Ubuntu](https://ubuntu.com) (tested on 20.04)
@@ -15,7 +15,7 @@ If you use this algorithm for a Formula Student competition, the **only** thing 
 
 ## 1. Delaunay Triangulation
 The first step of this approach consists in obtaining the Delaunay triangulation (a set of triangles) using the detected cones as points in a 2D space.
-This set is computed using my implementation of the [Bowyer-Watson algorithm](https://en.wikipedia.org/wiki/Bowyer%E2%80%93Watson_algorithm). This is an iterative process that is computed in O(*n*log*n*), being *n* the number of points. The execution time of the triangulation with a high number of cones is approximately 1ms. *Fig. 1* shows the triangle set (red) and the midpoints of every edge (green).
+This set is computed using my implementation of the [Bowyer-Watson algorithm](https://en.wikipedia.org/wiki/Bowyer%E2%80%93Watson_algorithm). This is an iterative process that is computed in O(*n*log*n*), being *n* the number of points. The execution time of the triangulation with a high number of cones is ~5ms. *Fig. 1* shows the triangle set (red) and the midpoints of every edge (green).
 
 <p align="center">
   <img src="./documentation/assets/urinay_triangulation_1.png" alt="Delaunay triangulation" width="500" /><br />

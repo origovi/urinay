@@ -5,7 +5,7 @@
  * @version 1.0
  * @date 2022-10-31
  * 
- * @copyright Copyright (c) 2022 BCN eMotorsport
+ * @copyright Copyright (c) 2025 BCN eMotorsport
  */
 
 #pragma once
@@ -18,6 +18,7 @@
 #include "structures/TraceBuffer.hpp"
 #include "utils/Params.hpp"
 #include "utils/definitions.hpp"
+#include "utils/Logger.hpp"
 
 /**
  * @brief Class that implements all necessary functions to visualize all
@@ -68,11 +69,11 @@ class Visualization {
   void setHeader(const std_msgs::Header &header);
 
   /**
-   * @brief Method to visualize a TriangleSet.
+   * @brief Method to visualize an EdgeSet.
    * 
-   * @param[in] triSet 
+   * @param[in] edgeSet 
    */
-  void visualize(const TriangleSet &triSet) const;
+  void visualize(const EdgeSet &edgeSet) const;
 
   /**
    * @brief Method to visualize a Way.
@@ -83,8 +84,7 @@ class Visualization {
 
   /**
    * @brief Method to visualize a TraceBuffer, i.e. all traces in real time.
-   * NOTE: by subscribing to the trace buffer topic, a delay is added to
-   * visualize the decision tree process.
+   * A delay is added to visualize the decision tree process.
    * 
    * @param[in] traceBuffer 
    */

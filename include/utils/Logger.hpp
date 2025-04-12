@@ -1,11 +1,11 @@
 /**
- * @file Time.hpp
+ * @file Logger.hpp
  * @author Oriol Gorriz (origovi2000@gmail.com)
- * @brief Contains the Time class specification
+ * @brief Contains the Logger class specification
  * @version 1.0
- * @date 2022-10-31
+ * @date 2025-04-12
  * 
- * @copyright Copyright (c) 2022 BCN eMotorsport
+ * @copyright Copyright (c) 2025 TUfast e.V.
  */
 
 #pragma once
@@ -16,15 +16,16 @@
 #include <stdexcept>
 #include <string>
 #include <iomanip>
+#include <queue>
 
 /**
- * @brief Abstract-static class made to make it easier to quantify the time
- * a specific set of operation take.
+ * @brief Abstract-static class made to make it easier show a report after each
+ * iteration including time statistics and important messages.
  */
-class Time {
+class Logger {
  private:
   /**
-   * @brief This private class helps to store all the metrics needed for
+   * @brief This private class helps to store all the metrics needed for time
    * profiling.
    */
   struct Task {
@@ -48,16 +49,27 @@ class Time {
       return last_duration;
     }
   };
-  static std::map<std::string, Task> tasks_;
-
- public:
-  Time() = delete;
 
   /**
-   * @brief When true, after every call to tock(), a line indicating the task
-   * duration is printed.
+   * @brief Map that includes all tasks that need to be timed and contains
+   * all timing info.
    */
-  static bool print_after_tock;
+  static std::map<std::string, Task> tasks_;
+
+  /**
+   * @brief Contains the current iteration's msgs that need to be printed in
+   * the next log report.
+   */
+  static std::queue<std::string> info_msgs_, warn_msgs_;
+
+ public:
+  Logger() = delete;
+
+  /**
+   * @brief When true, after every call to tock() or log, the time or log msg
+   * will be printed.
+   */
+  static bool print_immediately;
 
   /**
    * @brief Creates a clock with name \a clockName.
@@ -75,12 +87,20 @@ class Time {
   static ros::WallDuration tock(const std::string &clockName);
 
   /**
-   * @brief Prints a time report that includes time metrics of all tasks.
-   * The report includes:
-   * - Last duration of task
-   * - Max duration of task
-   * - Average duration of task
+   * @brief Appends a msg to be printed in the next log report with "info"
+   * priority.
+   */
+  static void loginfo(const std::string &msg);
+
+  /**
+   * @brief Appends a msg to be printed in the next log report with "warning"
+   * priority.
+   */
+  static void logwarn(const std::string &msg);
+
+  /**
+   * @brief Prints a time report that includes time metrics of all tasks and
+   * log messages that were added in that iteration.
    */
   static void print_report();
-
 };

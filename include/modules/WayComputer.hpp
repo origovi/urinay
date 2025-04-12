@@ -3,9 +3,9 @@
  * @author Oriol Gorriz (origovi2000@gmail.com)
  * @brief Contains the WayComputer class specification
  * @version 1.0
- * @date 2022-10-31
+ * @date 2025-04-12
  *
- * @copyright Copyright (c) 2022 BCN eMotorsport
+ * @copyright Copyright (c) 2025 TUfast e.V.
  */
 
 #pragma once
@@ -28,7 +28,7 @@
 #include "utils/Failsafe.hpp"
 #include "utils/constants.hpp"
 #include "utils/definitions.hpp"
-#include "utils/Time.hpp"
+#include "utils/Logger.hpp"
 
 /**
  * @brief A class that has all tools and functions to compute the Way.

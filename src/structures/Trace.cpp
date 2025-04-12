@@ -185,30 +185,11 @@ Trace Trace::trimLoopClosure() const {
 
 Trace Trace::restructureClosure() const {
   Trace res = *this;
-  if (res.size() < MIN_LOOP_SIZE) {
-    ROS_WARN("[urinay] Attempting to restructure closure of a short Trace.");
+  if (!res.isLoopClosed())
     return res;
-  }
 
-  const Edge &front = res.first().edge();
-  if (front != res.edge()) {
-    // Assume last Edge is the one that closes the loop
-    double distClosestWithLast = Point::distSq(front.midPoint(), res.edge().midPoint());
-    Trace closestWithLast = res;
-
-    for (Trace aux = res.before(5); !aux.empty(); aux = aux.before()) {  // The 5 is for safety and arbitrary
-      double distWithLast = Point::distSq(res.edge().midPoint(), aux.edge().midPoint());
-      if (distWithLast <= distClosestWithLast) {
-        distClosestWithLast = distWithLast;
-        closestWithLast = aux;
-      }
-    }
-
-    // We remove all edges that would cause our "loop" not to be a loop
-    // (all that are before the edge that closes the loop)
-    closestWithLast.detach();
-  }
   const Edge &firstEdge = res.first().edge();
+
   // Here last midpoint (now the closest to the first one) will be replaced
   // by the first one. Making sure that they are EXACTLY the same (id and value).
   if (firstEdge == res.edge() or
@@ -243,11 +224,6 @@ bool Trace::intersectsWith(const Edge &e) const {
 void Trace::clear() {
   this->p = nullptr;
   this->sizeToCar_ = 0;
-}
-
-void Trace::detach() const {
-  if (this->empty()) return;
-  this->p->before.reset();
 }
 
 void Trace::updateLocal(const Eigen::Affine3d &tf) const {

@@ -20,7 +20,7 @@
 #include "modules/DelaunayTri.hpp"
 #include "modules/Visualization.hpp"
 #include "modules/WayComputer.hpp"
-#include "utils/Time.hpp"
+#include "utils/Logger.hpp"
 
 // Publishers are initialized here
 ros::Publisher pubPartial;
@@ -32,15 +32,19 @@ Params *params;
 // This is the map callback
 void mapCallback(const custom_msgs::ConeWithIdArray::ConstPtr &data) {
   if (not wayComputer->isLocalTfValid()) {
-    ROS_WARN("[urinay] CarState not being received.");
+    Logger::logwarn("CarState not being received.");
+    if (params->main.verbose)
+      Logger::print_report();
     return;
   }
   if (data->cones.empty()) {
-    ROS_WARN("[urinay] reading empty set of cones.");
+    Logger::logwarn("Reading empty set of cones.");
+    if (params->main.verbose)
+      Logger::print_report();
     return;
   }
 
-  Time::tick("total");
+  Logger::tick("total");
 
   // Convert to Node vector
   std::vector<Node> nodes;
@@ -63,13 +67,15 @@ void mapCallback(const custom_msgs::ConeWithIdArray::ConstPtr &data) {
   // Publish loop and write tracklimits to a file
   if (wayComputer->isLoopClosed()) {
     pubFull.publish(wayComputer->getPathLimits());
-    ROS_INFO("[urinay] Loop closed!");
+    Logger::loginfo("Loop closed!");
     std::string loopDir = params->main.package_path + "/loops";
     mkdir(loopDir.c_str(), 0777);
     wayComputer->writeWayToFile(loopDir + "/loop.unay");
     if (params->main.shutdown_on_loop_closure) {
-      Time::tock("total");
-      ROS_INFO("[urinay] Have a good day :)");
+      Logger::tock("total");
+      Logger::loginfo("Have a good day :)");
+      if (params->main.verbose)
+        Logger::print_report();
       ros::shutdown();
     }
   }
@@ -78,9 +84,9 @@ void mapCallback(const custom_msgs::ConeWithIdArray::ConstPtr &data) {
     pubPartial.publish(wayComputer->getPathLimits());
   }
 
-  Time::tock("total");
+  Logger::tock("total");
   if (params->main.verbose)
-    Time::print_report();
+    Logger::print_report();
 }
 
 // Main
@@ -91,7 +97,7 @@ int main(int argc, char **argv) {
 
   params = new Params(nh);
   wayComputer = new WayComputer(params->wayComputer);
-  Time::print_after_tock = false;
+  Logger::print_immediately = false;
   Visualization::getInstance().init(nh, params->visualization);
 
   // Subscribers & Publishers

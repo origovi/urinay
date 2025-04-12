@@ -21,7 +21,7 @@ void TraceBuffer::prune() {
 
   Trace best = this->bestTrace();
 
-  // 1. Remove shortest (num midpoints) traces
+  // Remove shortest (num midpoints) traces
   auto it = this->begin();
   while (it != this->end()) {
     if (it->trace.size() < best.size()) {
@@ -33,6 +33,9 @@ void TraceBuffer::prune() {
 }
 
 void TraceBuffer::setEdgeAsDefinitive(const Edge &nextEdge) {
+  // Internally, what this is doing, is just remove all Trace(s) that do not
+  // have nextEdge as their first edge of the tree search (buffer) and pops
+  // the tree search buffer queue so the next first Edge is the second.
   auto it = this->begin();
   while (it != this->end()) {
     if (*(it->buffer.front()) != nextEdge) {

@@ -3,9 +3,9 @@
  * @author Oriol Gorriz (origovi2000@gmail.com)
  * @brief Contains the WayComputer class member functions implementation
  * @version 1.0
- * @date 2022-10-31
+ * @date 2025-04-12
  *
- * @copyright Copyright (c) 2022 BCN eMotorsport
+ * @copyright Copyright (c) 2025 TUfast e.V.
  */
 
 #include "modules/WayComputer.hpp"
@@ -13,6 +13,7 @@
 /* ----------------------------- Private Methods ---------------------------- */
 
 void WayComputer::filterTriangulation(TriangleSet &triangulation) const {
+  Logger::tick("filter triangulation");
   auto it = triangulation.begin();
   while (it != triangulation.end()) {
     bool removeTriangle = false;
@@ -39,6 +40,7 @@ void WayComputer::filterTriangulation(TriangleSet &triangulation) const {
     else
       it++;
   }
+  Logger::tock("filter triangulation");
 }
 
 std::pair<double, double> WayComputer::getHeuristic(const Point &actPos, const Edge &nextEdge, const Vector &actDir, const Trace *actTrace, const Params::WayComputer::Search &params) const {
@@ -191,7 +193,7 @@ bool WayComputer::treeSearch(TraceBuffer &traceBuffer, const KDTree &midpointsKD
   }
 
   // This loop will realize one tree search step, i.e. extend each Trace
-  // by one and add the extensions to the 'queue' list.
+  // by one and add the extensions to the 'queue' traceBuffer.
   bool didSth = false;
   auto it_buff = traceBuffer.begin();
   while (it_buff != traceBuffer.end()) {
@@ -219,10 +221,9 @@ void WayComputer::computeWay(const std::vector<Edge> &edges, const Params::WayCo
   this->way_.trimByLocal(this->localTf_.translation());
 
   if (this->way_.isLoopClosed()) {
-    ROS_WARN("[urinay] Loop already closed, this should only happen if the "
-             "car is just passing by the starting point and the closest "
-             "midpoint is the one closing the loop, hence no computation "
-             "is needed.");
+    // Loop already closed, this should only happen if the car is just passing
+    // by the starting point and the closest midpoint is the one closing the
+    // loop, hence no computation is done.");
     this->isLoopClosed_ = true;
     this->wayToPublish_ = this->way_.restructureClosure();
     return;
@@ -287,20 +288,14 @@ void WayComputer::stateCallback(const nav_msgs::Odometry::ConstPtr &data) {
 }
 
 void WayComputer::update(TriangleSet &triangulation, const std_msgs::Header &header) {
-  Time::tick("path computation");
-  if (not this->localTfValid_) {
-    ROS_WARN("[urinay] CarState not being received.");
-    return;
-  }
-
   // #0: Update last way (this will be used to calculate the raplan flag).
   //     And update stamp.
   this->lastWay_ = this->way_;
   this->lastHeader_ = header;
-
+  
   // #1: Remove all triangles which we know will not be part of the track.
   this->filterTriangulation(triangulation);
-
+  
   // #2: Extract all midpoints without repetitions, do that through an EdgeSet
   // so no midpoint is got twice.
   EdgeSet edgeSet;
@@ -315,29 +310,32 @@ void WayComputer::update(TriangleSet &triangulation, const std_msgs::Header &hea
   for (const Edge &e : edgeSet) {
     edgeVec.push_back(e);
   }
-
+  
   // #3: Update all local positions (way and edges) with car tf
   this->way_.updateLocal(this->localTf_);
   for (const Edge &e : edgeVec) {
     e.updateLocal(this->localTf_);
   }
-
+  
   // #4: Perform the search through the midpoints in order to obtain a way
   //     using normal parameters.
+  Logger::tick("path computation");
   this->computeWay(edgeVec, this->params_.search);
 
   // #5: Check failsafe(s)
   if (this->params_.general_failsafe and this->way_.sizeAheadOfCar() < MIN_FAILSAFE_WAY_SIZE and !this->isLoopClosed_) {
-    ROS_WARN("[urinay] GENERAL FAILSAFE ACTIVATED!");
+    Logger::logwarn("FAILSAFE ACTIVATED!");
     this->computeWay(edgeVec, this->generalFailsafe_);
   }
 
-  Time::tock("path computation");
+  Logger::tock("path computation");
 
   // #6: Visualize
+  Logger::tick("visualization");
   Visualization::getInstance().setHeader(header);
-  Visualization::getInstance().visualize(triangulation);
+  Visualization::getInstance().visualize(edgeSet);
   Visualization::getInstance().visualize(this->wayToPublish_);
+  Logger::tock("visualization");
 }
 
 const bool &WayComputer::isLoopClosed() const {
